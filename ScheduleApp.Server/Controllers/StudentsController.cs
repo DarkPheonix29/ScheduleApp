@@ -24,14 +24,24 @@ public class StudentsController : ControllerBase
 
     // POST: api/students
     [HttpPost]
-    public ActionResult<Student> CreateStudent(Student student)
+    [HttpPost]
+    public IActionResult AddStudent([FromBody] Student student)
     {
         if (student == null)
         {
-            return BadRequest("Student cannot be null.");
+            return BadRequest("Student data is required.");
         }
 
-        _studentService.AddStudent(student); // You will need to implement this method in IStudentService
-        return CreatedAtAction(nameof(GetStudents), new { id = student.Id }, student);
+        try
+        {
+            _studentService.AddStudent(student);
+            return CreatedAtAction(nameof(GetStudents), new { id = student.Id }, student);
+        }
+        catch (Exception ex)
+        {
+            // Log the exception (ex) if necessary
+            return StatusCode(500, "Internal server error");
+        }
     }
+
 }
