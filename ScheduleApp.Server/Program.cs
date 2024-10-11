@@ -1,3 +1,4 @@
+using BLL.Interfaces;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 
@@ -9,9 +10,10 @@ builder.Services.AddControllers();
 // OR for SQLite (if you prefer)
 builder.Services.AddDbContext<DbContext>(options =>
     options.UseSqlite("Data Source=local.db"));
+builder.Services.AddScoped<IStudentService>();
 
 //services.AddDbContext<DbContext>(options =>
-    //options.UseSqlServer(Configuration.GetConnectionString("DefaultConnection")));
+//options.UseSqlServer(Configuration.GetConnectionString("DefaultConnection")));
 
 
 // Swagger/OpenAPI configuration
