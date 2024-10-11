@@ -7,18 +7,31 @@ using System.Collections.Generic;
 [Route("api/[controller]")]
 public class StudentsController : ControllerBase
 {
-    private readonly IStudentService _studentRepository;
+    private readonly IStudentService _studentService;
 
-    public StudentsController(IStudentService studentRepository)
+    public StudentsController(IStudentService studentService)
     {
-        _studentRepository = studentRepository;
+        _studentService = studentService;
     }
 
     // GET: api/students
     [HttpGet]
     public ActionResult<IEnumerable<Student>> GetStudents()
     {
-        var students = _studentRepository.GetAllStudents();
+        var students = _studentService.GetAllStudents();
         return Ok(students);
+    }
+
+    // POST: api/students
+    [HttpPost]
+    public ActionResult<Student> CreateStudent(Student student)
+    {
+        if (student == null)
+        {
+            return BadRequest("Student cannot be null.");
+        }
+
+        _studentService.AddStudent(student); // You will need to implement this method in IStudentService
+        return CreatedAtAction(nameof(GetStudents), new { id = student.Id }, student);
     }
 }

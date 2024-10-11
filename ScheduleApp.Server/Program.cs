@@ -2,6 +2,8 @@ using BLL.Interfaces;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 
+
+
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
@@ -9,7 +11,7 @@ builder.Services.AddControllers();
 
 // OR for SQLite (if you prefer)
 builder.Services.AddDbContext<DbContext>(options =>
-    options.UseSqlite("Data Source=local.db"));
+    options.UseSqlite("Data Source=local.db")); // Or your preferred database configuration
 builder.Services.AddScoped<IStudentService>();
 
 //services.AddDbContext<DbContext>(options =>

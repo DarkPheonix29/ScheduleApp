@@ -2,11 +2,15 @@
 using System.Collections.Generic;
 using BLL.Models;
 
-public class ApplicationDbContext : DbContext
+namespace DAL
 {
-    public ApplicationDbContext(DbContextOptions<ApplicationDbContext> options) : base(options) { }
+ public class ApplicationDbContext : DbContext
+    {
+        public ApplicationDbContext(DbContextOptions<ApplicationDbContext> options) : base(options) { }
 
-    // Define your DbSets (tables) here
-    public DbSet<Student> Students { get; set; }
-    public DbSet<Lesson> Lessons { get; set; }
+        // Define your DbSets (tables) here
+        public DbSet<Student> Students { get; set; }
+        public DbSet<Lesson> Lessons { get; set; }
+    }
 }
+   
