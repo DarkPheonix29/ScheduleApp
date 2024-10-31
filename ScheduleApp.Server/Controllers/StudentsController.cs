@@ -1,7 +1,6 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using BLL.Interfaces;
 using BLL.Models;
-using System.Collections.Generic;
 
 [ApiController]
 [Route("api/[controller]")]
@@ -25,17 +24,17 @@ public class StudentsController : ControllerBase
     // POST: api/students
     [HttpPost]
     [HttpPost]
-    public IActionResult AddStudent([FromBody] Student student)
+    public IActionResult AddStudent(string name)
     {
-        if (student == null)
+        if (string.IsNullOrWhiteSpace(name))
         {
             return BadRequest("Student data is required.");
         }
 
         try
         {
-            _studentService.AddStudent(student);
-            return CreatedAtAction(nameof(GetStudents), new { id = student.Id }, student);
+            _studentService.AddStudent(new Student(name));
+            return Created();
         }
         catch (Exception ex)
         {

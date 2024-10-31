@@ -30,15 +30,12 @@ function App() {
         e.preventDefault();
         setError('');
 
-        const newStudent = { name: newStudentName };
-
         try {
-            const response = await fetch('/api/students', {
-                method: 'POST',
+            const response = await fetch("/api/students?name=" + newStudentName, {
+                method: "POST",
                 headers: {
                     'Content-Type': 'application/json',
-                },
-                body: JSON.stringify(newStudent),
+                }
             });
 
             if (!response.ok) {
