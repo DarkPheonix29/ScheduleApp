@@ -6,27 +6,26 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace BLL.Models
+namespace BLL.Models;
+
+public class Lesson
 {
-    public class Lesson
+    public Lesson()
     {
-        public Lesson()
-        {
-        }
-
-        public Lesson(string title, DateTime date)
-        {
-            Title = title;
-            Date = date;
-        }
-
-        [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
-        [Key]
-        public int Id { get; set; }
-
-        public string Title { get; set; }
-
-        public DateTime Date { get; set; }
-        // Other lesson properties
     }
+
+    public Lesson(string title, DateTime date)
+    {
+        Title = title;
+        Date = date;
+    }
+
+    [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
+    [Key]
+    public int Id { get; set; }
+
+    public required string Title { get; set; }
+
+    public DateTime Date { get; set; }
+    // Other lesson properties
 }

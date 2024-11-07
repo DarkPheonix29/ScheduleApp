@@ -6,24 +6,23 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace BLL.Models
+namespace BLL.Models;
+
+public class Student
 {
-    public class Student
+    public Student()
     {
-        public Student()
-        {
-        }
-
-        public Student(string name)
-        {
-            Name = name;
-        }
-
-        [Key]
-        [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
-        public int Id { get; set; }
-
-        public string Name { get; set; }
-        // Other student properties
     }
+
+    public Student(string name)
+    {
+        Name = name;
+    }
+
+    [Key]
+    [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
+    public int Id { get; set; }
+
+    public string Name { get; set; }
+    // Other student properties
 }

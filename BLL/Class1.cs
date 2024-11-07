@@ -1,7 +1,6 @@
-﻿namespace BLL
-{
-    public class Class1
-    {
+﻿namespace BLL;
 
-    }
+public class Class1
+{
+
 }

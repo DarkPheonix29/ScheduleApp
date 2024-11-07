@@ -1,16 +1,13 @@
-﻿using Microsoft.EntityFrameworkCore;
-using System.Collections.Generic;
-using BLL.Models;
+﻿using BLL.Models;
+using Microsoft.EntityFrameworkCore;
 
-namespace DAL
+namespace DAL;
+
+public class ApplicationDbContext(DbContextOptions<ApplicationDbContext> options) : DbContext(options)
 {
- public class ApplicationDbContext : DbContext
-    {
-        public ApplicationDbContext(DbContextOptions<ApplicationDbContext> options) : base(options) { }
 
-        // Define your DbSets (tables) here
-        public DbSet<Student> Students { get; set; }
-        public DbSet<Lesson> Lessons { get; set; }
-    }
+    // Define your DbSets (tables) here
+    public DbSet<Student> Students { get; set; }
+    public DbSet<Lesson> Lessons { get; set; }
+    public DbSet<Event> Events { get; set; }
 }
-   

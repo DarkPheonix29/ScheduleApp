@@ -1,87 +1,32 @@
-import { useEffect, useState } from 'react';
-import './App.css';
+import React, { useState } from 'react';
+import { startOfWeek, addDays, format } from 'date-fns';
+import './Calendar.css';
 
-function App() {
-    const [students, setStudents] = useState([]);
-    const [newStudentName, setNewStudentName] = useState('');
-    const [loading, setLoading] = useState(true);
-    const [error, setError] = useState('');
+const Calendar = () => {
+    const [currentDate, setCurrentDate] = useState(new Date());
+    const daysOfWeek = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
 
-    useEffect(() => {
-        fetchStudents();
-    }, []);
+    const startOfWeekDate = startOfWeek(currentDate, { weekStartsOn: 0 }); // Sunday as the start of the week
 
-    const fetchStudents = async () => {
-        try {
-            const response = await fetch('/api/students'); // Your API endpoint
-            if (!response.ok) {
-                throw new Error('Failed to fetch students');
-            }
-            const result = await response.json();
-            setStudents(result);
-            setLoading(false);
-        } catch (err) {
-            setError(err.message);
-            setLoading(false);
-        }
-    };
-
-    const handleCreateStudent = async (e) => {
-        e.preventDefault();
-        setError('');
-
-        try {
-            const response = await fetch("/api/students?name=" + newStudentName, {
-                method: "POST",
-                headers: {
-                    'Content-Type': 'application/json',
-                }
-            });
-
-            if (!response.ok) {
-                throw new Error('Failed to create student');
-            }
-
-            setNewStudentName('');
-            fetchStudents(); // Refresh the list of students
-        } catch (err) {
-            setError(err.message);
-        }
+    // Function to render each day of the current week
+    const renderDays = () => {
+        return daysOfWeek.map((day, index) => {
+            const dayDate = addDays(startOfWeekDate, index);
+            return (
+                <div key={index} className="calendar-day">
+                    <div className="day-name">{day}</div>
+                    <div className="day-date">{format(dayDate, 'dd MMM')}</div>
+                </div>
+            );
+        });
     };
 
     return (
-        <div>
-            <h1>Student Management</h1>
-            <p>This component demonstrates fetching and creating students from the server.</p>
-
-            {loading ? (
-                <p><em>Loading... Please refresh once the backend has started.</em></p>
-            ) : error ? (
-                <p style={{ color: 'red' }}>{error}</p>
-            ) : (
-                <div>
-                    <h2>Students List</h2>
-                    <ul>
-                        {students.map(student => (
-                            <li key={student.id}>{student.name}</li>
-                        ))}
-                    </ul>
-                </div>
-            )}
-
-            <form onSubmit={handleCreateStudent}>
-                <h2>Create New Student</h2>
-                <input
-                    type="text"
-                    placeholder="Student Name"
-                    value={newStudentName}
-                    onChange={(e) => setNewStudentName(e.target.value)}
-                    required
-                />
-                <button type="submit">Add Student</button>
-            </form>
+        <div className="calendar">
+            <h2>Weekly Calendar</h2>
+            <div className="calendar-grid">{renderDays()}</div>
         </div>
     );
-}
+};
 
-export default App;
+export default Calendar;

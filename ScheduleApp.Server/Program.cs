@@ -10,6 +10,8 @@ builder.Services.AddControllers();
 
 builder.Services.AddScoped<ApplicationDbContext>();
 builder.Services.AddScoped<IStudentService, StudentService>();
+builder.Services.AddScoped<IEventService, EventService>();
+
 
 // OR for SQLite (if you prefer)
 var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
@@ -30,7 +32,7 @@ var app = builder.Build();
 
 using var scope = app.Services.CreateScope();
 var context = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
-context.Database.EnsureCreated();
+context.Database.Migrate();
 
 app.UseDefaultFiles();
 app.UseStaticFiles();
