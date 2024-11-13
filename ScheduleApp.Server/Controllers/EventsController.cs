@@ -18,60 +18,28 @@ public class EventsController : ControllerBase
     }
 
     // GET: api/events
-    [HttpGet]
-    public async Task<ActionResult<List<Event>>> GetEvents()
+    [HttpGet("instructor/{instructorId}")]
+    public async Task<ActionResult<List<Event>>> GetEventsByInstructorId(int instructorId)
     {
-        var events = await _eventService.GetAllEventsAsync();
+        var events = await _eventService.GetEventsByInstructorIdAsync(instructorId);
         return Ok(events);
     }
 
-    // POST: api/events
-    [HttpPost]
-    public async Task<ActionResult<Event>> AddEvent([FromBody] Event newEvent)
+    [HttpPost("book/{eventId}")]
+    public async Task<ActionResult<Event>> BookLesson(int eventId, [FromBody] int studentId)
     {
-        var createdEvent = await _eventService.AddEventAsync(newEvent);
-        return CreatedAtAction(nameof(GetEventById), new { id = createdEvent.Id }, createdEvent);
+        var bookedEvent = await _eventService.BookLessonAsync(eventId, studentId);
+        if (bookedEvent == null)
+        {
+            return BadRequest("Event is already booked or not available.");
+        }
+        return Ok(bookedEvent);
     }
 
-    // GET: api/events/5
-    [HttpGet("{id}")]
-    public async Task<ActionResult<Event>> GetEventById(int id)
+    [HttpGet("check-availability")]
+    public async Task<ActionResult<bool>> CheckAvailability([FromQuery] int instructorId, [FromQuery] DateTime start, [FromQuery] DateTime end)
     {
-        var eventItem = await _eventService.GetEventByIdAsync(id);
-        if (eventItem == null)
-        {
-            return NotFound();
-        }
-        return Ok(eventItem);
-    }
-
-    // PUT: api/events/5
-    [HttpPut("{id}")]
-    public async Task<IActionResult> UpdateEvent(int id, [FromBody] Event updatedEvent)
-    {
-        if (id != updatedEvent.Id)
-        {
-            return BadRequest();
-        }
-
-        var result = await _eventService.UpdateEventAsync(updatedEvent);
-        if (result == null)
-        {
-            return NotFound();
-        }
-
-        return NoContent();
-    }
-
-    // DELETE: api/events/5
-    [HttpDelete("{id}")]
-    public async Task<IActionResult> DeleteEvent(int id)
-    {
-        var success = await _eventService.DeleteEventAsync(id);
-        if (!success)
-        {
-            return NotFound();
-        }
-        return NoContent();
+        var isAvailable = await _eventService.CheckAvailabilityAsync(instructorId, start, end);
+        return Ok(isAvailable);
     }
 }

@@ -9,23 +9,25 @@ using Microsoft.EntityFrameworkCore;
 
 namespace DAL.Services;
 
-public class EventService : IEventService  
+public class EventService : IEventService
 {
     private readonly ApplicationDbContext _context;
 
-    // Constructor should be defined separately
     public EventService(ApplicationDbContext context)
     {
         _context = context;
     }
 
-    // Get all events
     public async Task<List<Event>> GetAllEventsAsync()
     {
         return await _context.Events.ToListAsync();
     }
 
-    // Add a new event
+    public async Task<List<Event>> GetEventsByInstructorIdAsync(int instructorId)
+    {
+        return await _context.Events.Where(e => e.InstructorId == instructorId).ToListAsync();
+    }
+
     public async Task<Event> AddEventAsync(Event newEvent)
     {
         _context.Events.Add(newEvent);
@@ -33,13 +35,11 @@ public class EventService : IEventService
         return newEvent;
     }
 
-    // Get event by Id
     public async Task<Event> GetEventByIdAsync(int id)
     {
         return await _context.Events.FindAsync(id);
     }
 
-    // Update an existing event
     public async Task<Event> UpdateEventAsync(Event updatedEvent)
     {
         var existingEvent = await _context.Events.FindAsync(updatedEvent.Id);
@@ -48,13 +48,14 @@ public class EventService : IEventService
             existingEvent.Title = updatedEvent.Title;
             existingEvent.Start = updatedEvent.Start;
             existingEvent.End = updatedEvent.End;
+            existingEvent.Status = updatedEvent.Status;
+            existingEvent.StudentId = updatedEvent.StudentId;
             await _context.SaveChangesAsync();
             return existingEvent;
         }
         return null;
     }
 
-    // Delete an event
     public async Task<bool> DeleteEventAsync(int id)
     {
         var eventToDelete = await _context.Events.FindAsync(id);
@@ -65,5 +66,26 @@ public class EventService : IEventService
             return true;
         }
         return false;
+    }
+
+    public async Task<Event> BookLessonAsync(int eventId, int studentId)
+    {
+        var eventToBook = await _context.Events.FindAsync(eventId);
+        if (eventToBook != null && eventToBook.Status == "Available")
+        {
+            eventToBook.Status = "Booked";
+            eventToBook.StudentId = studentId;
+            await _context.SaveChangesAsync();
+            return eventToBook;
+        }
+        return null;
+    }
+
+    public async Task<bool> CheckAvailabilityAsync(int instructorId, DateTime start, DateTime end)
+    {
+        var events = await _context.Events
+            .Where(e => e.InstructorId == instructorId && e.Start < end && e.End > start)
+            .ToListAsync();
+        return !events.Any(); // If no events overlap, the time is available
     }
 }
