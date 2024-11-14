@@ -3,7 +3,7 @@ using BLL.Interfaces;
 
 namespace DAL.Services;
 
-public class StudentService(ApplicationDbContext context) : IStudentService
+public class StudentRepos(ApplicationDbContext context) : IStudentRepos
 {
     public IEnumerable<Student> GetAllStudents()
     {

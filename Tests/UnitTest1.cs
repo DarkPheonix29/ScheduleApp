@@ -9,7 +9,7 @@ public class StudentServiceTests
     public void GetAllStudents_ReturnsAllStudents()
     {
         // Arrange
-        var mockService = new Mock<IStudentService>();
+        var mockService = new Mock<IStudentRepos>();
         mockService.Setup(service => service.GetAllStudents()).Returns(new List<Student>
         {
             new Student { Id = 1, Name = "John Doe" },

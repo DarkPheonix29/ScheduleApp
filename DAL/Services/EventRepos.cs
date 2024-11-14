@@ -9,11 +9,11 @@ using Microsoft.EntityFrameworkCore;
 
 namespace DAL.Services;
 
-public class EventService : IEventService
+public class EventRepos : IEventRepos
 {
     private readonly ApplicationDbContext _context;
 
-    public EventService(ApplicationDbContext context)
+    public EventRepos(ApplicationDbContext context)
     {
         _context = context;
     }

@@ -5,7 +5,7 @@ using BLL.Models;
 
 namespace BLL.Interfaces;
 
-public interface IEventService
+public interface IEventRepos
 {
     Task<List<Event>> GetAllEventsAsync();
     Task<List<Event>> GetEventsByInstructorIdAsync(int instructorId);

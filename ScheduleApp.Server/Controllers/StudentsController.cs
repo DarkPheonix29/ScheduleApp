@@ -6,9 +6,9 @@ using BLL.Models;
 [Route("api/[controller]")]
 public class StudentsController : ControllerBase
 {
-    private readonly IStudentService _studentService;
+    private readonly IStudentRepos _studentService;
 
-    public StudentsController(IStudentService studentService)
+    public StudentsController(IStudentRepos studentService)
     {
         _studentService = studentService;
     }
@@ -22,7 +22,6 @@ public class StudentsController : ControllerBase
     }
 
     // POST: api/students
-    [HttpPost]
     [HttpPost]
     public IActionResult AddStudent(string name)
     {

@@ -4,42 +4,57 @@ using BLL.Models;
 using System.Threading.Tasks;
 using System.Collections.Generic;
 
-namespace SheduleApp.Server.Controllers;
-
-[Route("api/[controller]")]
-[ApiController]
-public class EventsController : ControllerBase
+namespace ScheduleApp.Server.Controllers
 {
-    private readonly IEventService _eventService;
-
-    public EventsController(IEventService eventService)
+    [Route("api/[controller]")]
+    [ApiController]
+    public class EventsController : ControllerBase
     {
-        _eventService = eventService;
-    }
+        private readonly IEventManager _eventManager;
 
-    // GET: api/events
-    [HttpGet("instructor/{instructorId}")]
-    public async Task<ActionResult<List<Event>>> GetEventsByInstructorId(int instructorId)
-    {
-        var events = await _eventService.GetEventsByInstructorIdAsync(instructorId);
-        return Ok(events);
-    }
-
-    [HttpPost("book/{eventId}")]
-    public async Task<ActionResult<Event>> BookLesson(int eventId, [FromBody] int studentId)
-    {
-        var bookedEvent = await _eventService.BookLessonAsync(eventId, studentId);
-        if (bookedEvent == null)
+        public EventsController(IEventManager eventManager)
         {
-            return BadRequest("Event is already booked or not available.");
+            _eventManager = eventManager;
         }
-        return Ok(bookedEvent);
-    }
 
-    [HttpGet("check-availability")]
-    public async Task<ActionResult<bool>> CheckAvailability([FromQuery] int instructorId, [FromQuery] DateTime start, [FromQuery] DateTime end)
-    {
-        var isAvailable = await _eventService.CheckAvailabilityAsync(instructorId, start, end);
-        return Ok(isAvailable);
+        // GET: api/events/instructor/{instructorId}
+        [HttpGet("instructor/{instructorId}")]
+        public async Task<ActionResult<List<Event>>> GetEventsByInstructorId(int instructorId)
+        {
+            var events = await _eventManager.GetEventsByInstructorIdAsync(instructorId);
+            return Ok(events);
+        }
+
+        // POST: api/events/book/{eventId}
+        [HttpPost("book/{eventId}")]
+        public async Task<ActionResult<Event>> BookLesson(int eventId, [FromBody] int studentId)
+        {
+            var bookedEvent = await _eventManager.BookLessonAsync(eventId, studentId);
+            if (bookedEvent == null)
+            {
+                return BadRequest("Event is already booked or not available.");
+            }
+            return Ok(bookedEvent);
+        }
+
+        // GET: api/events/check-availability
+        [HttpGet("check-availability")]
+        public async Task<ActionResult<bool>> CheckAvailability([FromQuery] int instructorId, [FromQuery] DateTime start, [FromQuery] DateTime end)
+        {
+            var isAvailable = await _eventManager.CheckAvailabilityAsync(instructorId, start, end);
+            return Ok(isAvailable);
+        }
+
+        // POST: api/events
+        [HttpPost]
+        public async Task<ActionResult<Event>> AddEvent([FromBody] Event newEvent)
+        {
+            var createdEvent = await _eventManager.AddEventAsync(newEvent);
+            if (createdEvent == null)
+            {
+                return BadRequest("Could not create the event.");
+            }
+            return Ok(createdEvent);
+        }
     }
 }

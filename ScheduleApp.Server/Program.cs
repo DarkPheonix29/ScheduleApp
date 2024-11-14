@@ -1,4 +1,6 @@
+using Auth0.AspNetCore.Authentication;
 using BLL.Interfaces;
+using BLL.Managers;
 using DAL;
 using DAL.Services;
 using Microsoft.EntityFrameworkCore;
@@ -9,8 +11,11 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddControllers();
 
 builder.Services.AddScoped<ApplicationDbContext>();
-builder.Services.AddScoped<IStudentService, StudentService>();
-builder.Services.AddScoped<IEventService, EventService>();
+builder.Services.AddScoped<IStudentRepos, StudentRepos>();
+builder.Services.AddScoped<IEventRepos, EventRepos>();
+builder.Services.AddScoped<IEventManager, EventManager>();
+
+
 
 
 // OR for SQLite (if you prefer)
@@ -27,7 +32,12 @@ builder.Services.AddDbContext<ApplicationDbContext>(options => {
 // Swagger/OpenAPI configuration
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
-
+builder.Services.AddAuth0WebAppAuthentication(options =>
+{
+    options.Domain = builder.Configuration["Auth0:Domain"];
+    options.ClientId = builder.Configuration["Auth0:ClientId"];
+});
+builder.Services.AddControllersWithViews();
 var app = builder.Build();
 
 using var scope = app.Services.CreateScope();
@@ -36,6 +46,7 @@ context.Database.Migrate();
 
 app.UseDefaultFiles();
 app.UseStaticFiles();
+
 
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
@@ -46,6 +57,7 @@ if (app.Environment.IsDevelopment())
 
 app.UseHttpsRedirection();
 
+app.UseAuthentication();
 app.UseAuthorization();
 
 app.MapControllers();
