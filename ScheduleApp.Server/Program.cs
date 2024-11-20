@@ -1,43 +1,39 @@
-using Auth0.AspNetCore.Authentication;
 using BLL.Interfaces;
 using BLL.Managers;
 using DAL;
 using DAL.Services;
 using Microsoft.EntityFrameworkCore;
+using FirebaseAdmin;
+using Google.Apis.Auth.OAuth2;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// Add services to the container.
-builder.Services.AddControllers();
-
+// Register services
 builder.Services.AddScoped<ApplicationDbContext>();
 builder.Services.AddScoped<IStudentRepos, StudentRepos>();
 builder.Services.AddScoped<IEventRepos, EventRepos>();
 builder.Services.AddScoped<IEventManager, EventManager>();
-
-
-
+builder.Services.AddScoped<FirebaseRoles>();  // Register renamed service
+builder.Services.AddScoped<FirebaseKey>();
 
 // OR for SQLite (if you prefer)
 var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
-builder.Services.AddDbContext<ApplicationDbContext>(options => {
-    options.UseSqlite(connectionString);
-}); 
-// Or your preferred database configuration
+builder.Services.AddDbContext<ApplicationDbContext>(options =>
+{
+	options.UseSqlite(connectionString);
+});
 
-/*builder.Services.AddDbContext<DbContext>(options => 
-    options.UseSqlite(Configuration.GetConnectionString("DefaultConnection"))
-    );*/
+// Initialize Firebase Admin SDK
+FirebaseApp.Create(new AppOptions()
+{
+	Credential = GoogleCredential.FromFile("C:\\Users\\keala\\source\\repos\\ScheduleApp\\scheduleapp-819ca-firebase-adminsdk-hj5ct-ed6b7912e0.json")
+});
 
 // Swagger/OpenAPI configuration
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
-builder.Services.AddAuth0WebAppAuthentication(options =>
-{
-    options.Domain = builder.Configuration["Auth0:Domain"];
-    options.ClientId = builder.Configuration["Auth0:ClientId"];
-});
 builder.Services.AddControllersWithViews();
+
 var app = builder.Build();
 
 using var scope = app.Services.CreateScope();
@@ -47,21 +43,17 @@ context.Database.Migrate();
 app.UseDefaultFiles();
 app.UseStaticFiles();
 
-
-// Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
 {
-    app.UseSwagger();
-    app.UseSwaggerUI();
+	app.UseSwagger();
+	app.UseSwaggerUI();
 }
 
 app.UseHttpsRedirection();
-
 app.UseAuthentication();
 app.UseAuthorization();
-
 app.MapControllers();
-
 app.MapFallbackToFile("/index.html");
 
 app.Run();
+
