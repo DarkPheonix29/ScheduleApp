@@ -1,4 +1,5 @@
 ﻿using Microsoft.AspNetCore.Mvc;
+using System.Threading.Tasks;
 
 [ApiController]
 [Route("api/admin")]
@@ -17,6 +18,7 @@ public class AdminController : ControllerBase
 	[HttpPost("assign-role")]
 	public async Task<IActionResult> AssignRole([FromBody] AssignRoleRequest request)
 	{
+		// Assign a role to a user
 		await _authService.AssignRoleAsync(request.UserId, request.Role);
 		return Ok(new { message = "Role assigned successfully." });
 	}
@@ -25,6 +27,7 @@ public class AdminController : ControllerBase
 	[HttpPost("generate-key")]
 	public async Task<IActionResult> GenerateKey()
 	{
+		// Generate a new registration key
 		var key = await _keyService.GenerateRegistrationKeyAsync();
 		return Ok(new { key });
 	}
@@ -33,8 +36,22 @@ public class AdminController : ControllerBase
 	[HttpPost("use-key")]
 	public async Task<IActionResult> UseKey([FromBody] string key)
 	{
+		// Mark a registration key as used
 		var success = await _keyService.UseRegistrationKeyAsync(key);
 		return success ? Ok(new { message = "Key used successfully." }) : BadRequest(new { message = "Invalid or already used key." });
+	}
+
+	// GET: api/admin/keys
+	[HttpGet("keys")]
+	public async Task<IActionResult> GetKeys()
+	{
+		// Retrieve all available keys
+		var keys = await _keyService.GetAllKeysAsync();
+		if (keys == null || keys.Count == 0)
+		{
+			return NotFound(new { message = "No keys found." });
+		}
+		return Ok(keys);
 	}
 }
 

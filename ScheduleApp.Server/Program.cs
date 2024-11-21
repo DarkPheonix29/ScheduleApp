@@ -8,38 +8,59 @@ using Google.Apis.Auth.OAuth2;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// Register services
-builder.Services.AddScoped<ApplicationDbContext>();
-builder.Services.AddScoped<IStudentRepos, StudentRepos>();
-builder.Services.AddScoped<IEventRepos, EventRepos>();
-builder.Services.AddScoped<IEventManager, EventManager>();
-builder.Services.AddScoped<FirebaseRoles>();  // Register renamed service
-builder.Services.AddScoped<FirebaseKey>();
+// --- Firebase Initialization ---
+FirebaseApp.Create(new AppOptions
+{
+	Credential = GoogleCredential.FromFile("C:\\Users\\keala\\source\\repos\\ScheduleApp\\scheduleapp-819ca-firebase-adminsdk-hj5ct-ed6b7912e0.json")
+});
 
-// OR for SQLite (if you prefer)
+// --- Configure Services ---
+
+// Register Database Context
 var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
 {
 	options.UseSqlite(connectionString);
 });
 
-// Initialize Firebase Admin SDK
-FirebaseApp.Create(new AppOptions()
-{
-	Credential = GoogleCredential.FromFile("C:\\Users\\keala\\source\\repos\\ScheduleApp\\scheduleapp-819ca-firebase-adminsdk-hj5ct-ed6b7912e0.json")
-});
+// Dependency Injection for Repositories and Managers
+builder.Services.AddScoped<IStudentRepos, StudentRepos>();
+builder.Services.AddScoped<IEventRepos, EventRepos>();
+builder.Services.AddScoped<IEventManager, EventManager>();
 
-// Swagger/OpenAPI configuration
-builder.Services.AddEndpointsApiExplorer();
-builder.Services.AddSwaggerGen();
+// Register custom Firebase-related services
+builder.Services.AddScoped<FirebaseRoles>(); // Renamed service, ensure its functionality matches your use case
+builder.Services.AddScoped<FirebaseKey>();
+
+// Add controllers and views
 builder.Services.AddControllersWithViews();
 
+// Add Authentication and Authorization Middleware
+builder.Services.AddAuthentication("Firebase")
+	.AddCookie("Firebase"); // Use cookie-based authentication for user sessions
+builder.Services.AddAuthorization(options =>
+{
+	options.AddPolicy("RequireAuthenticatedUser", policy =>
+	{
+		policy.RequireAuthenticatedUser();
+	});
+});
+
+// Add Swagger/OpenAPI for development
+builder.Services.AddEndpointsApiExplorer();
+builder.Services.AddSwaggerGen();
+
+// --- Build the App ---
 var app = builder.Build();
 
+// --- Apply Migrations ---
 using var scope = app.Services.CreateScope();
 var context = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
-context.Database.Migrate();
+context.Database.Migrate(); // Automatically apply pending migrations at startup
 
+// --- Configure Middleware ---
+
+// Serve static files and default files (e.g., index.html for SPA)
 app.UseDefaultFiles();
 app.UseStaticFiles();
 
@@ -50,10 +71,15 @@ if (app.Environment.IsDevelopment())
 }
 
 app.UseHttpsRedirection();
-app.UseAuthentication();
-app.UseAuthorization();
+app.UseAuthentication(); // Enable Authentication Middleware
+app.UseAuthorization();  // Enable Authorization Middleware
+
+// Add Role-based Middleware
+app.UseMiddleware<RoleAuth>();
+
+// Map API Controllers and Fallback for SPA
 app.MapControllers();
 app.MapFallbackToFile("/index.html");
 
+// --- Run the App ---
 app.Run();
-

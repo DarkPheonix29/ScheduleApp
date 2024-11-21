@@ -1,10 +1,11 @@
 ﻿using FirebaseAdmin;
 using FirebaseAdmin.Auth;
 using Google.Apis.Auth.OAuth2;
+using Google.Cloud.Firestore;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using System;
+
 using System.Linq;
 using System.Security.Claims;
 using System.Threading.Tasks;
@@ -16,27 +17,20 @@ namespace ScheduleApp.API.Controllers
 	public class AccountController : ControllerBase
 	{
 		private readonly FirebaseAuth _firebaseAuth;
+		private readonly FirebaseKey _firebaseKey;
 
 		public AccountController()
 		{
-			// Initialize Firebase Admin SDK only once (Ensure this is done before any Firebase operations)
+			// Initialize Firebase Admin SDK only once
 			if (FirebaseApp.DefaultInstance == null)
 			{
-				FirebaseApp.Create(new AppOptions()
+				FirebaseApp.Create(new AppOptions
 				{
-					Credential = GoogleCredential.FromFile("C:\\Users\\keala\\source\\repos\\ScheduleApp\\scheduleapp-819ca-firebase-adminsdk-hj5ct-ed6b7912e0.json")
+					Credential = GoogleCredential.FromFile("C:\\path_to_your_service_account_key.json")
 				});
 			}
 			_firebaseAuth = FirebaseAuth.DefaultInstance;
-		}
-
-		// This will be handled client-side using Firebase SDK
-		[HttpGet("login")]
-		public IActionResult Login(string returnUrl = "/")
-		{
-			// Normally, login is done on the front end via Firebase SDK (no need for backend login route)
-			// Redirecting to the frontend for Firebase login (this would be handled by Firebase JS SDK on the client)
-			return Redirect(returnUrl);
+			_firebaseKey = new FirebaseKey();
 		}
 
 		// Endpoint for verifying Firebase token from client-side
@@ -48,60 +42,119 @@ namespace ScheduleApp.API.Controllers
 				// Verify the Firebase ID token
 				var decodedToken = await _firebaseAuth.VerifyIdTokenAsync(idToken);
 
-				// Create a ClaimsIdentity and add claims from Firebase token
-				var userClaims = new ClaimsIdentity();
-				userClaims.AddClaim(new Claim(ClaimTypes.NameIdentifier, decodedToken.Uid));
+				// Retrieve the user's email from the decoded token
+				var email = decodedToken.Claims.ContainsKey("email") ? decodedToken.Claims["email"].ToString() : string.Empty;
 
-				// Add other claims from Firebase token
-				if (decodedToken.Claims.ContainsKey("name"))
-					userClaims.AddClaim(new Claim(ClaimTypes.Name, decodedToken.Claims["name"].ToString()));
+				if (string.IsNullOrEmpty(email))
+				{
+					return Unauthorized(new { message = "Email is missing from the token." });
+				}
 
-				if (decodedToken.Claims.ContainsKey("email"))
-					userClaims.AddClaim(new Claim(ClaimTypes.Email, decodedToken.Claims["email"].ToString()));
+				// Use FirebaseRoles to get the role from Firestore
+				var firebaseRoles = new FirebaseRoles();
+				var role = await firebaseRoles.GetRoleFromFirestoreAsync(email);
 
-				if (decodedToken.Claims.ContainsKey("picture"))
-					userClaims.AddClaim(new Claim("picture", decodedToken.Claims["picture"].ToString()));
+				// Create claims identity
+				var claims = new ClaimsIdentity();
+				claims.AddClaim(new Claim(ClaimTypes.NameIdentifier, decodedToken.Uid));
+				claims.AddClaim(new Claim(ClaimTypes.Email, email));
+				claims.AddClaim(new Claim(ClaimTypes.Name, decodedToken.Claims.ContainsKey("name") ? decodedToken.Claims["name"].ToString() : string.Empty));
 
-				// Optionally: Add roles based on Firebase custom claims
-				var role = decodedToken.Claims.ContainsKey("role") ? decodedToken.Claims["role"].ToString() : "Guest";
-				userClaims.AddClaim(new Claim("role", role));
+				// Add the role claim
+				claims.AddClaim(new Claim(ClaimTypes.Role, role));
 
-				var userPrincipal = new ClaimsPrincipal(userClaims);
+				// Create ClaimsPrincipal and sign in the user
+				var userPrincipal = new ClaimsPrincipal(claims);
 				await HttpContext.SignInAsync(userPrincipal);
 
-				return Ok(new { message = "Token verified successfully" });
+				return Ok(new { message = "Token verified successfully", role });
 			}
-			catch (Exception ex)
+			catch
 			{
-				return Unauthorized(new { message = "Invalid token", error = ex.Message });
+				return Unauthorized(new { message = "Invalid or expired token." });
 			}
 		}
 
-		// Profile route, protected by authorization (requires the user to be authenticated)
+
+
+
+		// Sign Up endpoint with registration key validation
+		// Sign Up endpoint with registration key validation
+		[HttpPost("signup")]
+		public async Task<IActionResult> SignUp([FromBody] SignUpRequest request)
+		{
+			// Validate the registration key
+			bool keyValid = await _firebaseKey.UseRegistrationKeyAsync(request.RegistrationKey);
+			if (!keyValid)
+			{
+				return BadRequest(new { message = "Invalid or already used registration key." });
+			}
+
+			try
+			{
+				// Firebase signup process
+				var user = await _firebaseAuth.CreateUserAsync(new UserRecordArgs
+				{
+					Email = request.Email,
+					Password = request.Password,
+					DisplayName = request.Name
+				});
+
+				// Assign the 'student' role after creating the user
+				var firebaseRoles = new FirebaseRoles();
+				await firebaseRoles.AssignRoleAsync(user.Uid, "student");
+
+				// Create Firestore document for the user
+				var firestoreDb = FirestoreDb.Create("scheduleapp-819ca"); // Set your Firestore project ID
+				var userRef = firestoreDb.Collection("users").Document(user.Uid);
+
+				// Set the user data (role and email)
+				await userRef.SetAsync(new
+				{
+					role = "student",  // Set role to 'student'
+					email = request.Email
+				});
+
+				return Ok(new { message = "User registered successfully", user });
+			}
+			catch (FirebaseAuthException ex)
+			{
+				return BadRequest(new { message = ex.Message });
+			}
+		}
+
+
+		// Profile endpoint protected by RoleAuth middleware
 		[Authorize]
 		[HttpGet("profile")]
 		public IActionResult Profile()
 		{
-			// Firebase UID will be available after token verification in middleware
 			var userId = User.Claims.FirstOrDefault(c => c.Type == ClaimTypes.NameIdentifier)?.Value;
 
-			return new JsonResult(new
+			return Ok(new
 			{
-				Name = User.Identity.Name, // This will be populated if you set it in your Firebase token
-				EmailAddress = User.Claims.FirstOrDefault(c => c.Type == ClaimTypes.Email)?.Value,
-				ProfileImage = User.Claims.FirstOrDefault(c => c.Type == "picture")?.Value,
+				Name = User.Identity.Name,
+				Email = User.Claims.FirstOrDefault(c => c.Type == ClaimTypes.Email)?.Value,
+				Role = User.Claims.FirstOrDefault(c => c.Type == ClaimTypes.Role)?.Value,
 				UserId = userId
 			});
 		}
 
-		// Logout - handled by Firebase client SDK, but you can clear session here if needed
+		// Logout route
 		[Authorize]
 		[HttpPost("logout")]
-		public async Task Logout()
+		public async Task<IActionResult> Logout()
 		{
-			// Firebase logout is handled client-side by Firebase SDK
-			// Optionally: Clear session or authentication token from server
 			await HttpContext.SignOutAsync();
+			return Ok(new { message = "Logged out successfully" });
 		}
+	}
+
+	public class SignUpRequest
+	{
+		public string Email { get; set; }
+		public string Password { get; set; }
+		public string Name { get; set; }
+		public string RegistrationKey { get; set; }
 	}
 }
