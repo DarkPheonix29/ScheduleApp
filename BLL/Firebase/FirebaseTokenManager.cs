@@ -12,7 +12,7 @@ namespace BLL.Manager
 			{
 				// Verify the ID Token using Firebase Admin SDK
 				var decodedToken = await FirebaseAuth.DefaultInstance.VerifyIdTokenAsync(idToken);
-				return decodedToken != null;  // Return true if the token is valid
+				return decodedToken is not null;  // Return true if the token is valid
 			}
 			catch (FirebaseAuthException ex)
 			{

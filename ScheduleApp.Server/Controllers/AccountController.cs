@@ -23,8 +23,8 @@ namespace ScheduleApp.API.Controllers
 		}
 
 		// Endpoint for verifying Firebase token from client-side
-		[HttpPost("verify-token")]
-		public async Task<IActionResult> VerifyToken([FromBody] string idToken)
+		[HttpPost("verify")]
+		public async Task<IActionResult> VerifyToken(string idToken)
 		{
 			try
 			{
@@ -84,7 +84,7 @@ namespace ScheduleApp.API.Controllers
 
 			return Ok(new
 			{
-				Name = User.Identity.Name,
+				Name = User.Identity?.Name,
 				Email = User.Claims.FirstOrDefault(c => c.Type == ClaimTypes.Email)?.Value,
 				Role = User.Claims.FirstOrDefault(c => c.Type == ClaimTypes.Role)?.Value,
 				UserId = userId
