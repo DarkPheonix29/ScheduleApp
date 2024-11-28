@@ -1,11 +1,9 @@
-﻿using FirebaseAdmin;
+﻿using BLL.Interfaces;
+using BLL.Manager;
 using FirebaseAdmin.Auth;
-using Google.Apis.Auth.OAuth2;
-using Google.Cloud.Firestore;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-
 using System.Linq;
 using System.Security.Claims;
 using System.Threading.Tasks;
@@ -16,21 +14,12 @@ namespace ScheduleApp.API.Controllers
 	[ApiController]
 	public class AccountController : ControllerBase
 	{
-		private readonly FirebaseAuth _firebaseAuth;
-		private readonly FirebaseKey _firebaseKey;
+		private readonly IUserManager _userManager;
+		private readonly IFirebaseUserRepos _authService;
 
-		public AccountController()
+		public AccountController(IUserManager userManager)
 		{
-			// Initialize Firebase Admin SDK only once
-			if (FirebaseApp.DefaultInstance == null)
-			{
-				FirebaseApp.Create(new AppOptions
-				{
-					Credential = GoogleCredential.FromFile("C:\\path_to_your_service_account_key.json")
-				});
-			}
-			_firebaseAuth = FirebaseAuth.DefaultInstance;
-			_firebaseKey = new FirebaseKey();
+			_userManager = userManager;
 		}
 
 		// Endpoint for verifying Firebase token from client-side
@@ -40,34 +29,14 @@ namespace ScheduleApp.API.Controllers
 			try
 			{
 				// Verify the Firebase ID token
-				var decodedToken = await _firebaseAuth.VerifyIdTokenAsync(idToken);
+				var verified = await _userManager.VerifyTokenAsync(idToken);
 
-				// Retrieve the user's email from the decoded token
-				var email = decodedToken.Claims.ContainsKey("email") ? decodedToken.Claims["email"].ToString() : string.Empty;
-
-				if (string.IsNullOrEmpty(email))
+				if (!verified)
 				{
-					return Unauthorized(new { message = "Email is missing from the token." });
+					return Unauthorized(new { message = "Invalid or expired token." });
 				}
 
-				// Use FirebaseRoles to get the role from Firestore
-				var firebaseRoles = new FirebaseRoles();
-				var role = await firebaseRoles.GetRoleFromFirestoreAsync(email);
-
-				// Create claims identity
-				var claims = new ClaimsIdentity();
-				claims.AddClaim(new Claim(ClaimTypes.NameIdentifier, decodedToken.Uid));
-				claims.AddClaim(new Claim(ClaimTypes.Email, email));
-				claims.AddClaim(new Claim(ClaimTypes.Name, decodedToken.Claims.ContainsKey("name") ? decodedToken.Claims["name"].ToString() : string.Empty));
-
-				// Add the role claim
-				claims.AddClaim(new Claim(ClaimTypes.Role, role));
-
-				// Create ClaimsPrincipal and sign in the user
-				var userPrincipal = new ClaimsPrincipal(claims);
-				await HttpContext.SignInAsync(userPrincipal);
-
-				return Ok(new { message = "Token verified successfully", role });
+				return Ok(new { message = "Token verified successfully" });
 			}
 			catch
 			{
@@ -75,16 +44,12 @@ namespace ScheduleApp.API.Controllers
 			}
 		}
 
-
-
-
-		// Sign Up endpoint with registration key validation
 		// Sign Up endpoint with registration key validation
 		[HttpPost("signup")]
 		public async Task<IActionResult> SignUp([FromBody] SignUpRequest request)
 		{
 			// Validate the registration key
-			bool keyValid = await _firebaseKey.UseRegistrationKeyAsync(request.RegistrationKey);
+			bool keyValid = await _userManager.UseRegistrationKeyAsync(request.RegistrationKey);
 			if (!keyValid)
 			{
 				return BadRequest(new { message = "Invalid or already used registration key." });
@@ -92,28 +57,15 @@ namespace ScheduleApp.API.Controllers
 
 			try
 			{
-				// Firebase signup process
-				var user = await _firebaseAuth.CreateUserAsync(new UserRecordArgs
+				var user = await FirebaseAuth.DefaultInstance.CreateUserAsync(new UserRecordArgs
 				{
 					Email = request.Email,
 					Password = request.Password,
 					DisplayName = request.Name
 				});
 
-				// Assign the 'student' role after creating the user
-				var firebaseRoles = new FirebaseRoles();
-				await firebaseRoles.AssignRoleAsync(user.Uid, "student");
-
-				// Create Firestore document for the user
-				var firestoreDb = FirestoreDb.Create("scheduleapp-819ca"); // Set your Firestore project ID
-				var userRef = firestoreDb.Collection("users").Document(user.Uid);
-
-				// Set the user data (role and email)
-				await userRef.SetAsync(new
-				{
-					role = "student",  // Set role to 'student'
-					email = request.Email
-				});
+				// After creating the user, assign role and save to Firestore
+				await _authService.AssignRoleAsync(user.Uid, "student");
 
 				return Ok(new { message = "User registered successfully", user });
 			}
@@ -122,7 +74,6 @@ namespace ScheduleApp.API.Controllers
 				return BadRequest(new { message = ex.Message });
 			}
 		}
-
 
 		// Profile endpoint protected by RoleAuth middleware
 		[Authorize]

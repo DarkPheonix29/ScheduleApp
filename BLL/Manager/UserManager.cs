@@ -1,52 +1,66 @@
 ﻿using BLL.Interfaces;
+using BLL.Manager;
 using BLL.Models;
 using FirebaseAdmin.Auth;
-using System.Collections.Generic;
-using System.Threading.Tasks;
 
-namespace BLL.Manager
+public class UserManager : IUserManager
 {
-	public class UserManager : IUserManager
+	private readonly IFirebaseTokenManager _tokenService;
+	private readonly IFirebaseKeyRepos _keyService;
+	private readonly IFirebaseUserRepos _userService;
+
+	public UserManager(IFirebaseTokenManager tokenService, IFirebaseKeyRepos keyService, IFirebaseUserRepos userService)
 	{
-		private readonly IFirebaseTokenManager _tokenService;
-		private readonly IFirebaseKeyManager _keyService;
-		private readonly IFirebaseUserRepos _userService;
+		_tokenService = tokenService;
+		_keyService = keyService;
+		_userService = userService;
+	}
 
-		public UserManager(IFirebaseTokenManager tokenService, IFirebaseKeyManager keyService, IFirebaseUserRepos userService)
-		{
-			_tokenService = tokenService;
-			_keyService = keyService;
-			_userService = userService;
-		}
+	// Verifying the Firebase token
+	public async Task<bool> VerifyTokenAsync(string idToken)
+	{
+		return await _tokenService.VerifyTokenAsync(idToken);
+	}
 
-		public async Task<bool> VerifyTokenAsync(string idToken)
-		{
-			return await _tokenService.VerifyTokenAsync(idToken);
-		}
+	// Generating a registration key
+	public async Task<string> GenerateRegistrationKeyAsync()
+	{
+		return await _keyService.GenerateRegistrationKeyAsync();
+	}
 
-		public async Task<string> GenerateRegistrationKeyAsync()
-		{
-			return await _keyService.GenerateRegistrationKeyAsync();
-		}
+	// Using a registration key and marking it as used
+	public async Task<bool> UseRegistrationKeyAsync(string key)
+	{
+		return await _keyService.UseRegistrationKeyAsync(key);
+	}
 
-		public async Task<bool> UseRegistrationKeyAsync(string key)
-		{
-			return await _keyService.ValidateRegistrationKeyAsync(key);
-		}
+	// Fetching all the keys
+	public async Task<List<KeyData>> GetAllKeysAsync()
+	{
+		return await _keyService.GetAllKeysAsync();
+	}
 
-		public async Task<List<KeyData>> GetAllKeysAsync()
-		{
-			return await _keyService.GetAllKeysAsync();
-		}
+	// Getting user profile information
+	public async Task<UserProfile> GetUserProfileAsync(string uid)
+	{
+		return await _userService.GetUserProfileAsync(uid);
+	}
 
-		public async Task<UserProfile> GetUserProfileAsync(string uid)
-		{
-			return await _userService.GetUserProfileAsync(uid);
-		}
+	// Logging out a user (revoking their refresh token)
+	public async Task LogoutUserAsync(string uid)
+	{
+		await FirebaseAuth.DefaultInstance.RevokeRefreshTokensAsync(uid);
+	}
 
-		public async Task LogoutUserAsync(string uid)
-		{
-			await FirebaseAuth.DefaultInstance.RevokeRefreshTokensAsync(uid);
-		}
+	// Assigning a role to the user
+	public async Task AssignRoleAsync(string userId, string role)
+	{
+		await _userService.AssignRoleAsync(userId, role); 
+	}
+
+	// Retrieve a user's role from Firestore
+	public async Task<string> GetRoleFromFirestoreAsync(string email)
+	{
+		return await _userService.GetRoleFromFirestoreAsync(email);
 	}
 }

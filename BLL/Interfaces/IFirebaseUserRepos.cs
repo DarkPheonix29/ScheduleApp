@@ -1,10 +1,4 @@
 ﻿using BLL.Models;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using BLL.Firebase;
 
 
 namespace BLL.Interfaces
@@ -13,5 +7,7 @@ namespace BLL.Interfaces
 	{
 		Task<UserProfile> GetUserProfileAsync(string uid);
 		Task LogoutUserAsync(string uid);
+		Task AssignRoleAsync(string userId, string role);
+		Task<string> GetRoleFromFirestoreAsync(string email);
 	}
 }

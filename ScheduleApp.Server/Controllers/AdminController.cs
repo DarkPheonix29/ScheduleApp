@@ -1,4 +1,5 @@
-﻿using BLL.Firebase;
+﻿using BLL.Interfaces;
+using BLL.Manager;
 using Microsoft.AspNetCore.Mvc;
 using System.Threading.Tasks;
 
@@ -6,14 +7,12 @@ using System.Threading.Tasks;
 [Route("api/admin")]
 public class AdminController : ControllerBase
 {
-	private readonly FirebaseRoles _authService;
-	private readonly FirebaseKey _KeyService;
-	private readonly FirebaseKeyManager _firebaseKeyManager;
+	private readonly IUserManager _userManager;
+	private readonly IFirebaseUserRepos _authService;
 
-	public AdminController(FirebaseRoles authService, FirebaseKey keyService)
+	public AdminController(IUserManager userManager)
 	{
-		_authService = authService;
-		_KeyService = keyService;
+		_userManager = userManager;
 	}
 
 	// POST: api/admin/assign-role
@@ -30,7 +29,7 @@ public class AdminController : ControllerBase
 	public async Task<IActionResult> GenerateKey()
 	{
 		// Generate a new registration key
-		var key = await _KeyService.GenerateRegistrationKeyAsync();
+		var key = await _userManager.GenerateRegistrationKeyAsync();
 		return Ok(new { key });
 	}
 
@@ -39,7 +38,7 @@ public class AdminController : ControllerBase
 	public async Task<IActionResult> UseKey([FromBody] string key)
 	{
 		// Mark a registration key as used
-		var success = await _KeyService.UseRegistrationKeyAsync(key);
+		var success = await _userManager.UseRegistrationKeyAsync(key);
 		return success ? Ok(new { message = "Key used successfully." }) : BadRequest(new { message = "Invalid or already used key." });
 	}
 
@@ -48,7 +47,7 @@ public class AdminController : ControllerBase
 	public async Task<IActionResult> GetKeys()
 	{
 		// Retrieve all available keys
-		var keys = await _KeyService.GetAllKeysAsync();
+		var keys = await _userManager.GetAllKeysAsync();
 		if (keys == null || keys.Count == 0)
 		{
 			return NotFound(new { message = "No keys found." });

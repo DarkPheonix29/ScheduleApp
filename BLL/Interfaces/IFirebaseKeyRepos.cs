@@ -1,4 +1,4 @@
-﻿using BLL.Firebase;
+﻿
 using FirebaseAdmin.Auth;
 using System;
 using System.Collections.Generic;
@@ -9,10 +9,13 @@ using BLL.Models;
 
 namespace BLL.Interfaces
 {
-	public interface IFirebaseKeyManager
+	public interface IFirebaseKeyRepos
 	{
 		Task<string> GenerateRegistrationKeyAsync();
-		Task<bool> ValidateRegistrationKeyAsync(string key);
+		Task<bool> UseRegistrationKeyAsync(string key);
 		Task<List<KeyData>> GetAllKeysAsync();
+		Task<string> GenerateKeyAsync();
+		Task<List<KeyData>> FetchKeysAsync();
+		Task<bool> MarkKeyAsUsedAsync(string key);
 	}
 }

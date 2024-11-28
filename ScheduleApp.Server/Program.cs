@@ -26,11 +26,9 @@ builder.Services.AddDbContext<ApplicationDbContext>(options =>
 });
 
 // Dependency Injection for Repositories and Managers
-builder.Services.AddScoped<IFirebaseKeyManager, FirebaseKeyManager>();
+builder.Services.AddScoped<IFirebaseKeyRepos, FirebaseKeyRepos>();
 builder.Services.AddScoped<IEventRepos, EventRepos>();
 builder.Services.AddScoped<IFirebaseTokenManager, FirebaseTokenManager>();
-builder.Services.AddScoped<FirebaseRoles>();
-builder.Services.AddScoped<FirebaseKey>();
 
 
 // Register custom Firebase-related services
