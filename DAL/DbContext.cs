@@ -7,7 +7,8 @@ public class ApplicationDbContext(DbContextOptions<ApplicationDbContext> options
 {
 
     // Define your DbSets (tables) here
-    public DbSet<Student> Students { get; set; }
     public DbSet<Lesson> Lessons { get; set; }
     public DbSet<Event> Events { get; set; }
+	public DbSet<UserProfile> UserProfiles { get; set; }
+
 }

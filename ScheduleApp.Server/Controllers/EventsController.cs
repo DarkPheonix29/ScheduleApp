@@ -1,8 +1,8 @@
 ﻿using Microsoft.AspNetCore.Mvc;
-using BLL.Interfaces;
 using BLL.Models;
 using System.Threading.Tasks;
 using System.Collections.Generic;
+using BLL.Manager;
 
 namespace ScheduleApp.Server.Controllers
 {

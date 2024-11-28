@@ -1,10 +1,12 @@
 using BLL.Interfaces;
-using BLL.Managers;
 using DAL;
 using DAL.Services;
 using Microsoft.EntityFrameworkCore;
 using FirebaseAdmin;
 using Google.Apis.Auth.OAuth2;
+using BLL.Firebase;
+using BLL.Manager;
+using Google.Api;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -24,13 +26,16 @@ builder.Services.AddDbContext<ApplicationDbContext>(options =>
 });
 
 // Dependency Injection for Repositories and Managers
-builder.Services.AddScoped<IStudentRepos, StudentRepos>();
+builder.Services.AddScoped<IFirebaseKeyManager, FirebaseKeyManager>();
 builder.Services.AddScoped<IEventRepos, EventRepos>();
-builder.Services.AddScoped<IEventManager, EventManager>();
+builder.Services.AddScoped<IFirebaseTokenManager, FirebaseTokenManager>();
+builder.Services.AddScoped<FirebaseRoles>();
+builder.Services.AddScoped<FirebaseKey>();
+
 
 // Register custom Firebase-related services
-builder.Services.AddScoped<FirebaseRoles>(); // Renamed service, ensure its functionality matches your use case
-builder.Services.AddScoped<FirebaseKey>();
+builder.Services.AddScoped<IFirebaseUserRepos, FirebaseUserRepos>(); // Renamed service, ensure its functionality matches your use case
+builder.Services.AddScoped<IUserManager, UserManager>();
 
 // Add controllers and views
 builder.Services.AddControllersWithViews();
@@ -75,7 +80,7 @@ app.UseAuthentication(); // Enable Authentication Middleware
 app.UseAuthorization();  // Enable Authorization Middleware
 
 // Add Role-based Middleware
-app.UseMiddleware<RoleAuth>();
+
 
 // Map API Controllers and Fallback for SPA
 app.MapControllers();

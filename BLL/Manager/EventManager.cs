@@ -4,7 +4,7 @@ using System.Threading.Tasks;
 using BLL.Interfaces;
 using BLL.Models;
 
-namespace BLL.Managers
+namespace BLL.Manager
 {
     public class EventManager : IEventManager
     {

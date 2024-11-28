@@ -11,7 +11,7 @@ public class FirebaseRoles
 	public FirebaseRoles()
 	{
 		_auth = FirebaseAuth.DefaultInstance; // Use the default instance of FirebaseAuth
-		_firestoreDb = FirestoreDb.Create("your-project-id"); // Set your Firestore project ID
+		_firestoreDb = FirestoreDb.Create("scheduleapp-819ca"); // Set your Firestore project ID
 	}
 
 	// Assign a role to a user

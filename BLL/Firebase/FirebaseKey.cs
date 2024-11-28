@@ -1,4 +1,5 @@
-﻿using Google.Cloud.Firestore;
+﻿using BLL.Models;
+using Google.Cloud.Firestore;
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
@@ -16,6 +17,8 @@ public class FirebaseKey
 	public async Task<string> GenerateRegistrationKeyAsync()
 	{
 		var key = Guid.NewGuid().ToString(); // Generate a unique GUID
+
+		// Use the key as the document ID in Firestore
 		var keyRef = _db.Collection("registrationKeys").Document(key);
 
 		// Set the initial key data
@@ -27,13 +30,13 @@ public class FirebaseKey
 		};
 
 		await keyRef.SetAsync(keyDoc);
-		return key;
+		return key; // Return the generated key
 	}
 
 	// Verify the key and mark it as used
 	public async Task<bool> UseRegistrationKeyAsync(string key)
 	{
-		var keyRef = _db.Collection("registrationKeys").Document(key);
+		var keyRef = _db.Collection("registrationKeys").Document(key); // Use key as document ID
 		var keyDoc = await keyRef.GetSnapshotAsync();
 
 		if (keyDoc.Exists && !keyDoc.GetValue<bool>("used"))
@@ -54,19 +57,11 @@ public class FirebaseKey
 
 		foreach (var document in snapshot.Documents)
 		{
-			var keyData = document.ConvertTo<KeyData>(); // Map to KeyData
-			keyData.Id = document.Id; // Document ID for reference
+			var keyData = document.ConvertTo<KeyData>(); // Automatically map fields to KeyData
+			keyData.Id = document.Id; // Set the document ID as 'Id' (which is the same as 'key')
 			keys.Add(keyData);
 		}
 
 		return keys;
 	}
-}
-
-public class KeyData
-{
-	public string Key { get; set; }
-	public bool Used { get; set; }
-	public Timestamp CreatedAt { get; set; }
-	public string Id { get; set; } // Document ID for future reference
 }

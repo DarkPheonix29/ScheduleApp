@@ -1,5 +1,6 @@
 ﻿using Google.Cloud.Firestore;
 using System;
+using BLL.Models;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
@@ -74,11 +75,4 @@ namespace BLL.Firebase
 	}
 
 	// Helper class to represent the key data
-	internal class KeyData
-	{
-		public string Key { get; set; }
-		public bool Used { get; set; }
-		public Timestamp CreatedAt { get; set; }
-		public string Id { get; set; } // Document ID for future reference
-	}
 }

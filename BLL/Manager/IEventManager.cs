@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Threading.Tasks;
 using BLL.Models;
 
-namespace BLL.Interfaces
+namespace BLL.Manager
 {
     public interface IEventManager
     {
