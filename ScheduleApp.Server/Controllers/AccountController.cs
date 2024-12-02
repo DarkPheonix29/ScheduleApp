@@ -15,13 +15,12 @@ namespace ScheduleApp.API.Controllers
 	public class AccountController : ControllerBase
 	{
 		private readonly IUserManager _userManager;
-		private readonly IFirebaseUserRepos _authService;
+
 
 		// Inject IFirebaseUserRepos into the constructor
-		public AccountController(IUserManager userManager, IFirebaseUserRepos authService)
+		public AccountController(IUserManager userManager)
 		{
 			_userManager = userManager;
-			_authService = authService;
 		}
 
 		// Endpoint for verifying Firebase token from client-side
@@ -76,29 +75,20 @@ namespace ScheduleApp.API.Controllers
 		[HttpPost("signup")]
 		public async Task<IActionResult> SignUp([FromBody] SignUpRequest request)
 		{
-			// Validate the registration key
-			bool keyValid = await _userManager.UseRegistrationKeyAsync(request.RegistrationKey);
-			if (!keyValid)
-			{
-				return BadRequest(new { message = "Invalid or already used registration key." });
-			}
-
 			try
 			{
-				// Create the user in Firebase
-				var user = await FirebaseAuth.DefaultInstance.CreateUserAsync(new UserRecordArgs
+				// Validate registration key
+				bool keyValid = await _userManager.UseRegistrationKeyAsync(request.RegistrationKey);
+				if (!keyValid)
 				{
-					Email = request.Email,
-					Password = request.Password,
-					DisplayName = request.Name
-				});
+					return BadRequest(new { message = "Invalid or already used registration key." });
+				}
 
-				// After creating the user, assign role and save to Firestore
-				await _authService.AssignRoleAsync(user.Uid, "student");
-
+				// Create user and assign role
+				var user = await _userManager.SignUpAsync(request.Email, request.Password, "student");
 				return Ok(new { message = "User registered successfully", user });
 			}
-			catch (FirebaseAuthException ex)
+			catch (Exception ex)
 			{
 				return BadRequest(new { message = ex.Message });
 			}

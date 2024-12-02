@@ -63,4 +63,13 @@ public class UserManager : IUserManager
 	{
 		return await _userService.GetRoleFromFirestoreAsync(email);
 	}
+	public async Task<UserRecord> SignUpAsync(string email, string password, string role)
+	{
+		return await _userService.SignUpAsync(email, password, role);
+	}
+
+	public async Task<string> LogInAsync(string email, string password)
+	{
+		return await _userService.LogInAsync(email, password);
+	}
 }
