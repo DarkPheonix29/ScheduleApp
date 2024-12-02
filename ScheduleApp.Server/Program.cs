@@ -28,7 +28,7 @@ builder.Services.AddDbContext<ApplicationDbContext>(options =>
 // Dependency Injection for Repositories and Managers
 builder.Services.AddScoped<IFirebaseKeyRepos, FirebaseKeyRepos>();
 builder.Services.AddScoped<IEventRepos, EventRepos>();
-builder.Services.AddScoped<IFirebaseTokenManager, FirebaseTokenManager>();
+builder.Services.AddScoped<IFirebaseTokenRepos, FirebaseTokenManager>();
 
 
 // Register custom Firebase-related services
@@ -41,13 +41,12 @@ builder.Services.AddControllersWithViews();
 // Add Authentication and Authorization Middleware
 builder.Services.AddAuthentication("Firebase")
 	.AddCookie("Firebase"); // Use cookie-based authentication for user sessions
-builder.Services.AddAuthorization(options =>
-{
-	options.AddPolicy("RequireAuthenticatedUser", policy =>
+
+builder.Services.AddAuthorizationBuilder()
+	.AddPolicy("RequireAuthenticatedUser", policy =>
 	{
 		policy.RequireAuthenticatedUser();
 	});
-});
 
 // Add Swagger/OpenAPI for development
 builder.Services.AddEndpointsApiExplorer();

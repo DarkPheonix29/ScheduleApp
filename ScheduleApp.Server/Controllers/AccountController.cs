@@ -17,9 +17,11 @@ namespace ScheduleApp.API.Controllers
 		private readonly IUserManager _userManager;
 		private readonly IFirebaseUserRepos _authService;
 
-		public AccountController(IUserManager userManager)
+		// Inject IFirebaseUserRepos into the constructor
+		public AccountController(IUserManager userManager, IFirebaseUserRepos authService)
 		{
 			_userManager = userManager;
+			_authService = authService;
 		}
 
 		// Endpoint for verifying Firebase token from client-side
@@ -35,6 +37,32 @@ namespace ScheduleApp.API.Controllers
 				{
 					return Unauthorized(new { message = "Invalid or expired token." });
 				}
+
+				// Retrieve user info from Firebase (e.g., email, UID)
+				var decodedToken = await FirebaseAuth.DefaultInstance.VerifyIdTokenAsync(idToken);
+				var userId = decodedToken.Uid;
+				var email = decodedToken.Claims["email"].ToString(); // Correct way to access email from claims
+
+				// Create claims identity for ASP.NET Core authentication
+				var claims = new List<Claim>
+		{
+			new Claim(ClaimTypes.Name, email),
+			new Claim(ClaimTypes.NameIdentifier, userId),
+			new Claim(ClaimTypes.Email, email),
+			new Claim(ClaimTypes.Role, "student")  // Ensure role is assigned
+        };
+
+				var claimsIdentity = new ClaimsIdentity(claims, "Firebase");
+
+				// Create the authentication ticket
+				var claimsPrincipal = new ClaimsPrincipal(claimsIdentity);
+
+				// Sign in the user and set the authentication cookie
+				await HttpContext.SignInAsync("Firebase", claimsPrincipal, new AuthenticationProperties
+				{
+					IsPersistent = true, // Keep the user logged in even after closing the browser
+					ExpiresUtc = DateTime.UtcNow.AddDays(30) // Set expiration time for the cookie
+				});
 
 				return Ok(new { message = "Token verified successfully" });
 			}
@@ -57,6 +85,7 @@ namespace ScheduleApp.API.Controllers
 
 			try
 			{
+				// Create the user in Firebase
 				var user = await FirebaseAuth.DefaultInstance.CreateUserAsync(new UserRecordArgs
 				{
 					Email = request.Email,
