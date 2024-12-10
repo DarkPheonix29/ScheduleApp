@@ -7,7 +7,7 @@ using BLL.Models;
 using DAL;
 using Microsoft.EntityFrameworkCore;
 
-namespace DAL.Services;
+namespace DAL.Repos;
 
 public class EventRepos : IEventRepos
 {
@@ -68,24 +68,26 @@ public class EventRepos : IEventRepos
         return false;
     }
 
-    public async Task<Event> BookLessonAsync(int eventId, int studentId)
-    {
-        var eventToBook = await _context.Events.FindAsync(eventId);
-        if (eventToBook != null && eventToBook.Status == "Available")
-        {
-            eventToBook.Status = "Booked";
-            eventToBook.StudentId = studentId;
-            await _context.SaveChangesAsync();
-            return eventToBook;
-        }
-        return null;
-    }
+	public async Task<Event> BookLessonAsync(int eventId, int studentId)
+	{
+		var eventToBook = await _context.Events.FirstOrDefaultAsync(e => e.Id == eventId && e.Status == "Available");
+		if (eventToBook != null)
+		{
+			eventToBook.Status = "Booked";
+			eventToBook.StudentId = studentId;  // Assuming you're assigning the studentId
+			await _context.SaveChangesAsync();
+		}
+		return eventToBook;
+	}
 
-    public async Task<bool> CheckAvailabilityAsync(int instructorId, DateTime start, DateTime end)
-    {
-        var events = await _context.Events
-            .Where(e => e.InstructorId == instructorId && e.Start < end && e.End > start)
-            .ToListAsync();
-        return !events.Any(); // If no events overlap, the time is available
-    }
+
+	public async Task<bool> CheckAvailabilityAsync(int instructorId, DateTime start, DateTime end)
+	{
+		var overlappingEvents = await _context.Events
+			.Where(e => e.InstructorId == instructorId && e.Status == "Available" &&
+						((e.Start < end && e.End > start)))  // Check if times overlap
+			.ToListAsync();
+
+		return !overlappingEvents.Any();  // Return true if no overlapping events are found
+	}
 }

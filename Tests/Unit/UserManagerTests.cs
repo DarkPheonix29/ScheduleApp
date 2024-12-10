@@ -7,7 +7,7 @@ using System.Collections.Generic;
 using System.Threading.Tasks;
 using Xunit;
 
-namespace Tests
+namespace Tests.Unit
 {
 	public class UserManagerTests
 	{

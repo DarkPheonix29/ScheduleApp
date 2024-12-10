@@ -1,6 +1,6 @@
 using BLL.Interfaces;
 using DAL;
-using DAL.Services;
+using DAL.Repos;
 using Microsoft.EntityFrameworkCore;
 using FirebaseAdmin;
 using Google.Apis.Auth.OAuth2;
