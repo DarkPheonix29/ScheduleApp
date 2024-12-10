@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 
 namespace BLL.Interfaces
 {
-	public interface IFirebaseTokenRepos
+	public interface IFirebaseTokenManager
 	{
 		Task<bool> VerifyTokenAsync(string idToken);
 		Task RevokeTokensAsync(string uid);

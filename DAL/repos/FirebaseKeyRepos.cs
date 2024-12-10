@@ -8,7 +8,7 @@ using BLL.Models;
 
 namespace BLL.Firebase
 {
-	public class FirebaseKeyRepos : IFirebaseKeyRepos
+	public class FirebaseKeyRepos : IFirebaseKeyManager
 	{
 		private readonly FirestoreDb _db;
 

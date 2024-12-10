@@ -33,7 +33,6 @@
   <ItemGroup>
     <ProjectReference Include="..\BLL\BLL.csproj" />
     <ProjectReference Include="..\DAL\DAL.csproj" />
-    <ProjectReference Include="..\scheduleapp.client\scheduleapp.client.esproj" />
     <ProjectReference Include="..\ScheduleApp.Server\ScheduleApp.Server.csproj" />
   </ItemGroup>
 

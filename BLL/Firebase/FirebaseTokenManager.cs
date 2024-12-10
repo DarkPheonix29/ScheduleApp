@@ -4,7 +4,7 @@ using BLL.Interfaces;
 
 namespace BLL.Manager
 {
-	public class FirebaseTokenManager : IFirebaseTokenRepos
+	public class FirebaseTokenManager : IFirebaseTokenManager
 	{
 		public async Task<bool> VerifyTokenAsync(string idToken)
 		{

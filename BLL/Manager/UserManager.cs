@@ -5,11 +5,11 @@ using FirebaseAdmin.Auth;
 
 public class UserManager : IUserManager
 {
-	private readonly IFirebaseTokenRepos _tokenService;
-	private readonly IFirebaseKeyRepos _keyService;
+	private readonly IFirebaseTokenManager _tokenService;
+	private readonly IFirebaseKeyManager _keyService;
 	private readonly IFirebaseUserRepos _userService;
 
-	public UserManager(IFirebaseTokenRepos tokenService, IFirebaseKeyRepos keyService, IFirebaseUserRepos userService)
+	public UserManager(IFirebaseTokenManager tokenService, IFirebaseKeyManager keyService, IFirebaseUserRepos userService)
 	{
 		_tokenService = tokenService;
 		_keyService = keyService;

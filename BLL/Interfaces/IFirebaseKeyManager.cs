@@ -9,7 +9,7 @@ using BLL.Models;
 
 namespace BLL.Interfaces
 {
-	public interface IFirebaseKeyRepos
+	public interface IFirebaseKeyManager
 	{
 		Task<string> GenerateRegistrationKeyAsync();
 		Task<bool> UseRegistrationKeyAsync(string key);
