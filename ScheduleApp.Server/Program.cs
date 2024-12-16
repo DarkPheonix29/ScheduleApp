@@ -11,12 +11,17 @@ using Google.Api;
 var builder = WebApplication.CreateBuilder(args);
 
 // --- Firebase Initialization ---
+var firebaseKeyPath = Environment.GetEnvironmentVariable("FIREBASE_KEY_PATH") ?? builder.Configuration["Firebase:ServiceAccountKeyPath"];
+if (string.IsNullOrEmpty(firebaseKeyPath) || !File.Exists(firebaseKeyPath))
+{
+	throw new FileNotFoundException($"Firebase service account key file not found at '{firebaseKeyPath}'.");
+}
+
 FirebaseApp.Create(new AppOptions
 {
-	Credential = GoogleCredential.FromFile("C:\\Users\\keala\\source\\repos\\ScheduleApp\\scheduleapp-819ca-firebase-adminsdk-hj5ct-ed6b7912e0.json")
+	Credential = GoogleCredential.FromFile(firebaseKeyPath)
 });
 
-// --- Configure Services ---
 
 // Register Database Context
 var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
