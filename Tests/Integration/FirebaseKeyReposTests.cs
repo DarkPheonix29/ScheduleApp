@@ -30,7 +30,6 @@ namespace Tests.Integration
 			_db = FirestoreDb.Create("scheduleapp-819ca"); // Firebase project ID
 			_keyrepo = new FirebaseKeyRepos();
 			_auth = FirebaseAuth.DefaultInstance;
-			_userrepo = new FirebaseUserRepos();
 		}
 
 		[Fact]

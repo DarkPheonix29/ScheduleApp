@@ -1,12 +1,15 @@
 using BLL.Interfaces;
 using DAL;
-using DAL.Repos;
+using DAL.repos;
 using Microsoft.EntityFrameworkCore;
 using FirebaseAdmin;
 using Google.Apis.Auth.OAuth2;
 using BLL.Firebase;
 using BLL.Manager;
 using Google.Api;
+using DAL.repos;
+using FirebaseAdmin.Auth;
+using Google.Cloud.Firestore;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -29,12 +32,16 @@ builder.Services.AddDbContext<ApplicationDbContext>(options =>
 {
 	options.UseSqlite(connectionString);
 });
+builder.Services.AddScoped<FirebaseAuth>(_ => FirebaseAuth.DefaultInstance);
+
 
 // Dependency Injection for Repositories and Managers
 builder.Services.AddScoped<IFirebaseKeyManager, FirebaseKeyRepos>();
-builder.Services.AddScoped<IEventRepos, EventRepos>();
+builder.Services.AddScoped<IInstructorAvailabilityRepos, InstructorAvailabilityRepos>();
+builder.Services.AddScoped<IStudentLessonRepos, StudentLessonRepos>();
 builder.Services.AddScoped<IFirebaseTokenManager, FirebaseTokenManager>();
-
+builder.Services.AddScoped<IProfileRepos, ProfileRepos>();
+builder.Services.AddScoped<IEventManager, EventManager>();
 
 // Register custom Firebase-related services
 builder.Services.AddScoped<IFirebaseUserRepos, FirebaseUserRepos>(); // Renamed service, ensure its functionality matches your use case

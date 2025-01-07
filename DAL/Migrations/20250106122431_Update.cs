@@ -6,7 +6,7 @@ using Microsoft.EntityFrameworkCore.Migrations;
 namespace DAL.Migrations
 {
     /// <inheritdoc />
-    public partial class Init : Migration
+    public partial class Update : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
@@ -19,7 +19,11 @@ namespace DAL.Migrations
                         .Annotation("Sqlite:Autoincrement", true),
                     Title = table.Column<string>(type: "TEXT", nullable: false),
                     Start = table.Column<DateTime>(type: "TEXT", nullable: false),
-                    End = table.Column<DateTime>(type: "TEXT", nullable: false)
+                    End = table.Column<DateTime>(type: "TEXT", nullable: false),
+                    InstructorId = table.Column<int>(type: "INTEGER", nullable: false),
+                    StudentId = table.Column<int>(type: "INTEGER", nullable: true),
+                    Status = table.Column<string>(type: "TEXT", nullable: false),
+                    Duration = table.Column<int>(type: "INTEGER", nullable: false)
                 },
                 constraints: table =>
                 {
@@ -41,16 +45,21 @@ namespace DAL.Migrations
                 });
 
             migrationBuilder.CreateTable(
-                name: "Students",
+                name: "UserProfiles",
                 columns: table => new
                 {
                     Id = table.Column<int>(type: "INTEGER", nullable: false)
                         .Annotation("Sqlite:Autoincrement", true),
-                    Name = table.Column<string>(type: "TEXT", nullable: false)
+                    Email = table.Column<string>(type: "TEXT", nullable: false),
+                    DisplayName = table.Column<string>(type: "TEXT", nullable: false),
+                    PhoneNumber = table.Column<string>(type: "TEXT", nullable: false),
+                    Address = table.Column<string>(type: "TEXT", nullable: false),
+                    PickupAddress = table.Column<string>(type: "TEXT", nullable: false),
+                    DateOfBirth = table.Column<DateTime>(type: "TEXT", nullable: false)
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_Students", x => x.Id);
+                    table.PrimaryKey("PK_UserProfiles", x => x.Id);
                 });
         }
 
@@ -64,7 +73,7 @@ namespace DAL.Migrations
                 name: "Lessons");
 
             migrationBuilder.DropTable(
-                name: "Students");
+                name: "UserProfiles");
         }
     }
 }

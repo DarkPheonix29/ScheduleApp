@@ -1,14 +1,14 @@
 ﻿using BLL.Models;
 using Microsoft.EntityFrameworkCore;
 
-namespace DAL;
-
-public class ApplicationDbContext(DbContextOptions<ApplicationDbContext> options) : DbContext(options)
+public class ApplicationDbContext : DbContext
 {
+	public ApplicationDbContext(DbContextOptions<ApplicationDbContext> options)
+		: base(options)
+	{ }
 
-    // Define your DbSets (tables) here
-    public DbSet<Lesson> Lessons { get; set; }
-    public DbSet<Event> Events { get; set; }
+	// DbSets for your entities
+	public DbSet<InstructorAvailability> InstructorAvailabilities { get; set; }
+	public DbSet<StudentLesson> StudentLessons { get; set; }
 	public DbSet<UserProfile> UserProfiles { get; set; }
-
 }

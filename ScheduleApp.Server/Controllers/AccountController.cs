@@ -1,12 +1,14 @@
 ﻿using BLL.Interfaces;
-using BLL.Manager;
-using FirebaseAdmin.Auth;
+using BLL.Models;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using FirebaseAdmin.Auth;
 using System.Linq;
 using System.Security.Claims;
 using System.Threading.Tasks;
+using System;
+using BLL.Manager;
 
 namespace ScheduleApp.API.Controllers
 {
@@ -15,12 +17,13 @@ namespace ScheduleApp.API.Controllers
 	public class AccountController : ControllerBase
 	{
 		private readonly IUserManager _userManager;
+		private readonly IProfileRepos _profileRepos;  // Inject IProfileRepos
 
-
-		// Inject IFirebaseUserRepos into the constructor
-		public AccountController(IUserManager userManager)
+		// Inject IUserManager and IProfileRepos into the constructor
+		public AccountController(IUserManager userManager, IProfileRepos profileRepos)
 		{
 			_userManager = userManager;
+			_profileRepos = profileRepos;
 		}
 
 		// Endpoint for verifying Firebase token from client-side
@@ -44,12 +47,12 @@ namespace ScheduleApp.API.Controllers
 
 				// Create claims identity for ASP.NET Core authentication
 				var claims = new List<Claim>
-		{
-			new Claim(ClaimTypes.Name, email),
-			new Claim(ClaimTypes.NameIdentifier, userId),
-			new Claim(ClaimTypes.Email, email),
-			new Claim(ClaimTypes.Role, "student")  // Ensure role is assigned
-        };
+				{
+					new Claim(ClaimTypes.Name, email),
+					new Claim(ClaimTypes.NameIdentifier, userId),
+					new Claim(ClaimTypes.Email, email),
+					new Claim(ClaimTypes.Role, "student")  // Ensure role is assigned
+                };
 
 				var claimsIdentity = new ClaimsIdentity(claims, "Firebase");
 
@@ -84,8 +87,12 @@ namespace ScheduleApp.API.Controllers
 					return BadRequest(new { message = "Invalid or already used registration key." });
 				}
 
-				// Create user and assign role
+				// Create user in Firebase
 				var user = await _userManager.SignUpAsync(request.Email, request.Password, "student");
+
+				// Save user profile data in SQLite (excluding password)
+				UserProfile userProfile = await _profileRepos.CreateUserProfileAsync(request.Email, request.Name, request.PhoneNumber, request.Address, request.PickupAddress, request.DateOfBirth);
+
 				return Ok(new { message = "User registered successfully", user });
 			}
 			catch (Exception ex)
@@ -120,11 +127,16 @@ namespace ScheduleApp.API.Controllers
 		}
 	}
 
+	// Sign-up request model to hold user data from frontend
 	public class SignUpRequest
 	{
 		public string Email { get; set; }
 		public string Password { get; set; }
 		public string Name { get; set; }
 		public string RegistrationKey { get; set; }
+		public string PhoneNumber { get; set; }
+		public string Address { get; set; }
+		public string PickupAddress { get; set; }
+		public DateTime DateOfBirth { get; set; }
 	}
 }

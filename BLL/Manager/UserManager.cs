@@ -40,12 +40,6 @@ public class UserManager : IUserManager
 		return await _keyService.GetAllKeysAsync();
 	}
 
-	// Getting user profile information
-	public async Task<UserProfile> GetUserProfileAsync(string uid)
-	{
-		return await _userService.GetUserProfileAsync(uid);
-	}
-
 	// Logging out a user (revoking their refresh token)
 	public async Task LogoutUserAsync(string uid)
 	{
