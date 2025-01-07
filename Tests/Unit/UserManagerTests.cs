@@ -7,7 +7,7 @@ using System.Collections.Generic;
 using System.Threading.Tasks;
 using Xunit;
 
-namespace Tests
+namespace Tests.Unit
 {
 	public class UserManagerTests
 	{
@@ -82,22 +82,6 @@ namespace Tests
 			// Assert
 			_mockKeyService.Verify(x => x.GetAllKeysAsync(), Times.Once);
 			Assert.Equal(keys.Count, result.Count);
-		}
-
-		[Fact]
-		public async Task GetUserProfileAsync_CallsUserServiceAndReturnsProfile()
-		{
-			// Arrange
-			string uid = "user-123";
-			var profile = new UserProfile { FirebaseUid = uid, DisplayName = "John Doe" };
-			_mockUserService.Setup(x => x.GetUserProfileAsync(uid)).ReturnsAsync(profile);
-
-			// Act
-			var result = await _userManager.GetUserProfileAsync(uid);
-
-			// Assert
-			_mockUserService.Verify(x => x.GetUserProfileAsync(uid), Times.Once);
-			Assert.Equal(profile.DisplayName, result.DisplayName);
 		}
 
 		[Fact]

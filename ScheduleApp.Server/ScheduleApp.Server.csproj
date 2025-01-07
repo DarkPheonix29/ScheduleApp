@@ -34,4 +34,10 @@
     <ProjectReference Include="..\DAL\DAL.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Content Update="scheduleapp-819ca-firebase-adminsdk-hj5ct-ed6b7912e0.json">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+  </ItemGroup>
+
 </Project>

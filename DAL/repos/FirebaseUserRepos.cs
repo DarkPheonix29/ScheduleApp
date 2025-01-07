@@ -4,6 +4,7 @@ using DAL;
 using FirebaseAdmin.Auth;
 using Google;
 using Google.Cloud.Firestore;
+using Google.Cloud.Firestore.V1;
 using Microsoft.EntityFrameworkCore;
 
 namespace BLL.Firebase
@@ -14,16 +15,10 @@ namespace BLL.Firebase
 		private readonly FirebaseAuth _auth;
 		private readonly FirestoreDb _firestoreDb;
 
-		public async Task<UserProfile> GetUserProfileAsync(string uid)
+		public FirebaseUserRepos(FirebaseAuth auth)
 		{
-			var userProfile = await _dbContext.UserProfiles.FirstOrDefaultAsync(u => u.FirebaseUid == uid);
-
-			if (userProfile == null)
-			{
-				throw new Exception("User profile not found.");
-			}
-
-			return userProfile;
+			_auth = auth;
+			_firestoreDb = FirestoreDb.Create("scheduleapp-819ca");
 		}
 
 		public async Task LogoutUserAsync(string uid)
@@ -77,8 +72,11 @@ namespace BLL.Firebase
 
 				// Save role in Firestore
 				var userDoc = _firestoreDb.Collection("users").Document(user.Uid);
-				await userDoc.SetAsync(new { role });
-
+				await userDoc.SetAsync(new
+				{
+					email = email, // Add email field
+					role = role    // Add role field
+				});
 				return user;
 			}
 			catch (Exception ex)
@@ -97,7 +95,7 @@ namespace BLL.Firebase
 
 				// Here, we are assuming the client-side already provides the Firebase token
 				// Validate token
-				var decodedToken = await _auth.VerifyIdTokenAsync(password); // `password` acts as the token here
+				var decodedToken = await _auth.VerifyIdTokenAsync(password); // password acts as the token here
 				return decodedToken.Uid;
 			}
 			catch (Exception ex)

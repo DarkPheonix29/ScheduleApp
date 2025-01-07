@@ -6,53 +6,46 @@ using BLL.Models;
 
 namespace BLL.Manager
 {
-    public class EventManager : IEventManager
-    {
-        private readonly IEventRepos _eventRepos;
+	public class EventManager : IEventManager
+	{
+		private readonly IStudentLessonRepos _lessonRepos;
+		private readonly IInstructorAvailabilityRepos _availabilityRepos;
 
-        public EventManager(IEventRepos eventRepos)
-        {
-            _eventRepos = eventRepos;
-        }
+		public EventManager(IStudentLessonRepos lessonRepos, IInstructorAvailabilityRepos availabilityRepos)
+		{
+			_lessonRepos = lessonRepos;
+			_availabilityRepos = availabilityRepos;
+		}
 
-        public async Task<List<Event>> GetAllEventsAsync()
-        {
-            return await _eventRepos.GetAllEventsAsync();
-        }
+		public async Task<StudentLesson> BookLessonAsync(StudentLesson lesson)
+		{
+			return await _lessonRepos.BookLessonAsync(lesson);
+		}
 
-        public async Task<List<Event>> GetEventsByInstructorIdAsync(int instructorId)
-        {
-            return await _eventRepos.GetEventsByInstructorIdAsync(instructorId);
-        }
+		public async Task<List<StudentLesson>> GetStudentLessonsAsync(string studentEmail)
+		{
+			return await _lessonRepos.GetLessonsByInstructorEmailAsync(studentEmail);
+		}
 
-        public async Task<Event> AddEventAsync(Event newEvent)
-        {
-            return await _eventRepos.AddEventAsync(newEvent);
-        }
+		public async Task<List<InstructorAvailability>> GetInstructorAvailabilityAsync()
+		{
+			return await _availabilityRepos.GetAllAvailabilityAsync();
+		}
 
-        public async Task<Event> GetEventByIdAsync(int id)
-        {
-            return await _eventRepos.GetEventByIdAsync(id);
-        }
+		public async Task<InstructorAvailability> AddAvailabilityAsync(string instructoremail, DateTime start, DateTime end, string status)
+		{
+			return await _availabilityRepos.AddAvailabilityAsync(instructoremail, start, end, status);
+		}
 
-        public async Task<Event> UpdateEventAsync(Event updatedEvent)
-        {
-            return await _eventRepos.UpdateEventAsync(updatedEvent);
-        }
+		public async Task<bool> UpdateAvailabilityStatusAsync(int id, string status)
+		{
+			return await _availabilityRepos.UpdateAvailabilityStatusAsync(id, status);
+		}
 
-        public async Task<bool> DeleteEventAsync(int id)
-        {
-            return await _eventRepos.DeleteEventAsync(id);
-        }
-
-        public async Task<Event> BookLessonAsync(int eventId, int studentId)
-        {
-            return await _eventRepos.BookLessonAsync(eventId, studentId);
-        }
-
-        public async Task<bool> CheckAvailabilityAsync(int instructorId, DateTime start, DateTime end)
-        {
-            return await _eventRepos.CheckAvailabilityAsync(instructorId, start, end);
-        }
-    }
+		// New Method to Fetch All Instructor Availabilities
+		public async Task<List<InstructorAvailability>> GetAllInstructorAvailabilitiesAsync()
+		{
+			return await _availabilityRepos.GetAllAvailabilityAsync();
+		}
+	}
 }

@@ -1,15 +1,14 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
+using System.Text;
 using System.Threading.Tasks;
-using BLL.Models;
 
-namespace BLL.Manager
+namespace BLL.Interfaces
 {
-	public interface IEventManager
+	public interface IInstructorAvailabilityRepos
 	{
-		Task<StudentLesson> BookLessonAsync(StudentLesson lesson);
-		Task<List<StudentLesson>> GetStudentLessonsAsync(string studentEmail);
-		Task<List<InstructorAvailability>> GetInstructorAvailabilityAsync();
+		Task<List<InstructorAvailability>> GetAllAvailabilityAsync();
 		Task<InstructorAvailability> AddAvailabilityAsync(string instructoremail, DateTime start, DateTime end, string status);
 		Task<bool> UpdateAvailabilityStatusAsync(int id, string status);
 	}

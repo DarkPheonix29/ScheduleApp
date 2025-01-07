@@ -1,22 +1,30 @@
 using BLL.Interfaces;
 using DAL;
-using DAL.Services;
+using DAL.repos;
 using Microsoft.EntityFrameworkCore;
 using FirebaseAdmin;
 using Google.Apis.Auth.OAuth2;
 using BLL.Firebase;
 using BLL.Manager;
 using Google.Api;
+using DAL.repos;
+using FirebaseAdmin.Auth;
+using Google.Cloud.Firestore;
 
 var builder = WebApplication.CreateBuilder(args);
 
 // --- Firebase Initialization ---
+var firebaseKeyPath = Environment.GetEnvironmentVariable("FIREBASE_KEY_PATH") ?? builder.Configuration["Firebase:ServiceAccountKeyPath"];
+if (string.IsNullOrEmpty(firebaseKeyPath) || !File.Exists(firebaseKeyPath))
+{
+	throw new FileNotFoundException($"Firebase service account key file not found at '{firebaseKeyPath}'.");
+}
+
 FirebaseApp.Create(new AppOptions
 {
-	Credential = GoogleCredential.FromFile("C:\\Users\\keala\\source\\repos\\ScheduleApp\\scheduleapp-819ca-firebase-adminsdk-hj5ct-ed6b7912e0.json")
+	Credential = GoogleCredential.FromFile(firebaseKeyPath)
 });
 
-// --- Configure Services ---
 
 // Register Database Context
 var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
@@ -24,12 +32,16 @@ builder.Services.AddDbContext<ApplicationDbContext>(options =>
 {
 	options.UseSqlite(connectionString);
 });
+builder.Services.AddScoped<FirebaseAuth>(_ => FirebaseAuth.DefaultInstance);
+
 
 // Dependency Injection for Repositories and Managers
 builder.Services.AddScoped<IFirebaseKeyManager, FirebaseKeyRepos>();
-builder.Services.AddScoped<IEventRepos, EventRepos>();
+builder.Services.AddScoped<IInstructorAvailabilityRepos, InstructorAvailabilityRepos>();
+builder.Services.AddScoped<IStudentLessonRepos, StudentLessonRepos>();
 builder.Services.AddScoped<IFirebaseTokenManager, FirebaseTokenManager>();
-
+builder.Services.AddScoped<IProfileRepos, ProfileRepos>();
+builder.Services.AddScoped<IEventManager, EventManager>();
 
 // Register custom Firebase-related services
 builder.Services.AddScoped<IFirebaseUserRepos, FirebaseUserRepos>(); // Renamed service, ensure its functionality matches your use case
