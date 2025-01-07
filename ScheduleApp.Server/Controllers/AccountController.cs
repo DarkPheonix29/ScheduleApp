@@ -9,6 +9,8 @@ using System.Security.Claims;
 using System.Threading.Tasks;
 using System;
 using BLL.Manager;
+using Google.Cloud.Firestore;
+using BLL.Firebase;
 
 namespace ScheduleApp.API.Controllers
 {
@@ -19,7 +21,7 @@ namespace ScheduleApp.API.Controllers
 		private readonly IUserManager _userManager;
 		private readonly IProfileRepos _profileRepos;  // Inject IProfileRepos
 
-		// Inject IUserManager and IProfileRepos into the constructor
+		// Inject IUserManager, IProfileRepos, and FirestoreDb into the constructor
 		public AccountController(IUserManager userManager, IProfileRepos profileRepos)
 		{
 			_userManager = userManager;
@@ -51,8 +53,9 @@ namespace ScheduleApp.API.Controllers
 					new Claim(ClaimTypes.Name, email),
 					new Claim(ClaimTypes.NameIdentifier, userId),
 					new Claim(ClaimTypes.Email, email),
-					new Claim(ClaimTypes.Role, "student")  // Ensure role is assigned
-                };
+					new Claim(ClaimTypes.Role, "student"),
+					new Claim(ClaimTypes.Role, "instructor")
+				};
 
 				var claimsIdentity = new ClaimsIdentity(claims, "Firebase");
 
@@ -125,6 +128,52 @@ namespace ScheduleApp.API.Controllers
 			await HttpContext.SignOutAsync();
 			return Ok(new { message = "Logged out successfully" });
 		}
+
+
+		[HttpGet("students")]
+		public async Task<IActionResult> GetStudents()
+		{
+			try
+			{
+
+				var studentEmails = await _profileRepos.GetStudentEmailsAsync();
+
+				if (studentEmails == null || !studentEmails.Any())
+				{
+					return NotFound(new { message = "No students found." });
+				}
+
+				return Ok(studentEmails);
+			}
+			catch (Exception ex)
+			{
+				return BadRequest(new { message = ex.Message });
+			}
+		}
+
+
+		// Get student profile by email
+		[HttpGet("studentprofile/{email}")]
+		public async Task<IActionResult> GetStudentProfile(string email)
+		{
+			try
+			{
+				// Fetch the student profile based on email
+				var studentProfile = await _profileRepos.GetStudentProfileByEmailAsync(email);  // Update to fetch by email
+
+				if (studentProfile == null)
+				{
+					return NotFound(new { message = "Student profile not found." });
+				}
+
+				return Ok(studentProfile);  // Return the full profile
+			}
+			catch (Exception ex)
+			{
+				return BadRequest(new { message = ex.Message });
+			}
+		}
+
 	}
 
 	// Sign-up request model to hold user data from frontend
