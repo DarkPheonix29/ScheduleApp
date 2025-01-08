@@ -9,5 +9,6 @@
 		public string Address { get; set; }
 		public string PickupAddress { get; set; }
 		public DateTime DateOfBirth { get; set; }
+		public byte[]? InstructorCard { get; set; }
 	}
 }

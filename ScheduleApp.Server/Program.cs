@@ -6,10 +6,9 @@ using FirebaseAdmin;
 using Google.Apis.Auth.OAuth2;
 using BLL.Firebase;
 using BLL.Manager;
-using Google.Api;
-using DAL.repos;
-using FirebaseAdmin.Auth;
 using Google.Cloud.Firestore;
+using FirebaseAdmin.Auth;
+using Microsoft.OpenApi.Models;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -25,7 +24,6 @@ FirebaseApp.Create(new AppOptions
 	Credential = GoogleCredential.FromFile(firebaseKeyPath)
 });
 
-
 // Register Database Context
 var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
@@ -34,17 +32,17 @@ builder.Services.AddDbContext<ApplicationDbContext>(options =>
 });
 builder.Services.AddScoped<FirebaseAuth>(_ => FirebaseAuth.DefaultInstance);
 
-
 // Dependency Injection for Repositories and Managers
 builder.Services.AddScoped<IFirebaseKeyManager, FirebaseKeyRepos>();
 builder.Services.AddScoped<IInstructorAvailabilityRepos, InstructorAvailabilityRepos>();
 builder.Services.AddScoped<IStudentLessonRepos, StudentLessonRepos>();
 builder.Services.AddScoped<IFirebaseTokenManager, FirebaseTokenManager>();
-builder.Services.AddScoped<IProfileRepos, ProfileRepos>();
+builder.Services.AddScoped<IProfileRepos, ProfileRepos>(); // Updated to reflect correct service
 builder.Services.AddScoped<IEventManager, EventManager>();
+builder.Services.AddScoped<IExcelRepos, ExcelRepos>();
 
 // Register custom Firebase-related services
-builder.Services.AddScoped<IFirebaseUserRepos, FirebaseUserRepos>(); // Renamed service, ensure its functionality matches your use case
+builder.Services.AddScoped<IFirebaseUserRepos, FirebaseUserRepos>(); // Ensure this matches your actual implementation
 builder.Services.AddScoped<IUserManager, UserManager>();
 
 // Add controllers and views
@@ -54,26 +52,38 @@ builder.Services.AddControllersWithViews();
 builder.Services.AddAuthentication("Firebase")
 	.AddCookie("Firebase"); // Use cookie-based authentication for user sessions
 
-builder.Services.AddAuthorizationBuilder()
-	.AddPolicy("RequireAuthenticatedUser", policy =>
+builder.Services.AddAuthorization(options =>
+{
+	options.AddPolicy("RequireAuthenticatedUser", policy =>
 	{
 		policy.RequireAuthenticatedUser();
 	});
+});
 
 // Add Swagger/OpenAPI for development
 builder.Services.AddEndpointsApiExplorer();
-builder.Services.AddSwaggerGen();
+// Add Swagger/OpenAPI for development with file upload support
+builder.Services.AddSwaggerGen(c =>
+{
+    // Explicitly specify that IFormFile is of type binary
+    c.MapType<IFormFile>(() => new OpenApiSchema { Type = "string", Format = "binary" });
+
+
+    // Optional: If you want to support additional file types or configure further, you can add more here.
+});
+
 
 // --- Build the App ---
 var app = builder.Build();
 
 // --- Apply Migrations ---
-using var scope = app.Services.CreateScope();
-var context = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
-context.Database.Migrate(); // Automatically apply pending migrations at startup
+using (var scope = app.Services.CreateScope())
+{
+	var context = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
+	context.Database.Migrate(); // Automatically apply pending migrations at startup
+}
 
 // --- Configure Middleware ---
-
 // Serve static files and default files (e.g., index.html for SPA)
 app.UseDefaultFiles();
 app.UseStaticFiles();
@@ -87,9 +97,6 @@ if (app.Environment.IsDevelopment())
 app.UseHttpsRedirection();
 app.UseAuthentication(); // Enable Authentication Middleware
 app.UseAuthorization();  // Enable Authorization Middleware
-
-// Add Role-based Middleware
-
 
 // Map API Controllers and Fallback for SPA
 app.MapControllers();

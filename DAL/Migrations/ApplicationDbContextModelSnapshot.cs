@@ -37,6 +37,9 @@ namespace DAL.Migrations
                         .IsRequired()
                         .HasColumnType("TEXT");
 
+                    b.Property<byte[]>("InstructorCard")
+                        .HasColumnType("BLOB");
+
                     b.Property<string>("PhoneNumber")
                         .IsRequired()
                         .HasColumnType("TEXT");

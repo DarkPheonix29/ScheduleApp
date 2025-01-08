@@ -19,22 +19,23 @@ namespace ScheduleApp.API.Controllers
 	public class AccountController : ControllerBase
 	{
 		private readonly IUserManager _userManager;
-		private readonly IProfileRepos _profileRepos;  // Inject IProfileRepos
+		private readonly IProfileRepos _profileRepos;
+		private readonly IConfiguration _configuration;
+		private readonly IExcelRepos _excelRepos;
 
-		// Inject IUserManager, IProfileRepos, and FirestoreDb into the constructor
-		public AccountController(IUserManager userManager, IProfileRepos profileRepos)
+		public AccountController(IUserManager userManager, IProfileRepos profileRepos, IConfiguration configuration, IExcelRepos excelRepos)
 		{
 			_userManager = userManager;
 			_profileRepos = profileRepos;
+			_configuration = configuration;
+			_excelRepos = excelRepos;
 		}
 
-		// Endpoint for verifying Firebase token from client-side
 		[HttpPost("verify")]
 		public async Task<IActionResult> VerifyToken(string idToken)
 		{
 			try
 			{
-				// Verify the Firebase ID token
 				var verified = await _userManager.VerifyTokenAsync(idToken);
 
 				if (!verified)
@@ -42,12 +43,10 @@ namespace ScheduleApp.API.Controllers
 					return Unauthorized(new { message = "Invalid or expired token." });
 				}
 
-				// Retrieve user info from Firebase (e.g., email, UID)
 				var decodedToken = await FirebaseAuth.DefaultInstance.VerifyIdTokenAsync(idToken);
 				var userId = decodedToken.Uid;
-				var email = decodedToken.Claims["email"].ToString(); // Correct way to access email from claims
+				var email = decodedToken.Claims["email"].ToString();
 
-				// Create claims identity for ASP.NET Core authentication
 				var claims = new List<Claim>
 				{
 					new Claim(ClaimTypes.Name, email),
@@ -59,52 +58,75 @@ namespace ScheduleApp.API.Controllers
 
 				var claimsIdentity = new ClaimsIdentity(claims, "Firebase");
 
-				// Create the authentication ticket
 				var claimsPrincipal = new ClaimsPrincipal(claimsIdentity);
 
-				// Sign in the user and set the authentication cookie
 				await HttpContext.SignInAsync("Firebase", claimsPrincipal, new AuthenticationProperties
 				{
-					IsPersistent = true, // Keep the user logged in even after closing the browser
-					ExpiresUtc = DateTime.UtcNow.AddDays(30) // Set expiration time for the cookie
+					IsPersistent = true,
+					ExpiresUtc = DateTime.UtcNow.AddDays(30)
 				});
 
 				return Ok(new { message = "Token verified successfully" });
 			}
-			catch
+			catch (Exception ex)
 			{
-				return Unauthorized(new { message = "Invalid or expired token." });
+				return Unauthorized(new { message = $"Error: {ex.Message}" });
 			}
 		}
 
-		// Sign Up endpoint with registration key validation
 		[HttpPost("signup")]
 		public async Task<IActionResult> SignUp([FromBody] SignUpRequest request)
 		{
 			try
 			{
-				// Validate registration key
-				bool keyValid = await _userManager.UseRegistrationKeyAsync(request.RegistrationKey);
-				if (!keyValid)
+				if (!await _userManager.UseRegistrationKeyAsync(request.RegistrationKey))
 				{
 					return BadRequest(new { message = "Invalid or already used registration key." });
 				}
 
-				// Create user in Firebase
 				var user = await _userManager.SignUpAsync(request.Email, request.Password, "student");
 
-				// Save user profile data in SQLite (excluding password)
-				UserProfile userProfile = await _profileRepos.CreateUserProfileAsync(request.Email, request.Name, request.PhoneNumber, request.Address, request.PickupAddress, request.DateOfBirth);
+				var userProfile = await _profileRepos.CreateUserProfileAsync(
+					request.Email, request.Name, request.PhoneNumber, request.Address, request.PickupAddress, request.DateOfBirth
+				);
 
-				return Ok(new { message = "User registered successfully", user });
+				var templatePath = _configuration["ExcelTemplate:ExcelTemplatePath"];
+				if (!System.IO.File.Exists(templatePath))
+				{
+					throw new FileNotFoundException($"Template file not found at: {templatePath}");
+				}
+
+				var fileBytes = System.IO.File.ReadAllBytes(templatePath);
+
+				Console.WriteLine($"Read {fileBytes.Length} bytes from template file.");
+
+				// Use the new method for saving the instructor card during signup
+				await _excelRepos.SaveInstructorCardDuringSignupAsync(request.Email);
+
+				// Verify that the file was saved correctly
+				var savedFileBytes = await _excelRepos.GetInstructorCardAsync(request.Email);
+				if (savedFileBytes != null && savedFileBytes.Length > 0)
+				{
+					// Save the instructor card to a file to view it
+					System.IO.File.WriteAllBytes("InstructorCard_" + request.Email + ".pdf", savedFileBytes);
+					Console.WriteLine($"Instructor card saved successfully to a file for user: {request.Email}");
+				}
+				else
+				{
+					throw new Exception("Failed to save the instructor card to the database.");
+				}
+
+				return Ok(new { message = "User registered successfully.", user });
 			}
 			catch (Exception ex)
 			{
+				Console.WriteLine($"Error during signup: {ex.Message}");
 				return BadRequest(new { message = ex.Message });
 			}
 		}
 
-		// Profile endpoint protected by RoleAuth middleware
+
+
 		[Authorize]
 		[HttpGet("profile")]
 		public IActionResult Profile()
@@ -120,7 +142,6 @@ namespace ScheduleApp.API.Controllers
 			});
 		}
 
-		// Logout route
 		[Authorize]
 		[HttpPost("logout")]
 		public async Task<IActionResult> Logout()
@@ -129,13 +150,11 @@ namespace ScheduleApp.API.Controllers
 			return Ok(new { message = "Logged out successfully" });
 		}
 
-
 		[HttpGet("students")]
 		public async Task<IActionResult> GetStudents()
 		{
 			try
 			{
-
 				var studentEmails = await _profileRepos.GetStudentEmailsAsync();
 
 				if (studentEmails == null || !studentEmails.Any())
@@ -151,32 +170,27 @@ namespace ScheduleApp.API.Controllers
 			}
 		}
 
-
-		// Get student profile by email
 		[HttpGet("studentprofile/{email}")]
 		public async Task<IActionResult> GetStudentProfile(string email)
 		{
 			try
 			{
-				// Fetch the student profile based on email
-				var studentProfile = await _profileRepos.GetStudentProfileByEmailAsync(email);  // Update to fetch by email
+				var studentProfile = await _profileRepos.GetStudentProfileByEmailAsync(email);
 
 				if (studentProfile == null)
 				{
 					return NotFound(new { message = "Student profile not found." });
 				}
 
-				return Ok(studentProfile);  // Return the full profile
+				return Ok(studentProfile);
 			}
 			catch (Exception ex)
 			{
 				return BadRequest(new { message = ex.Message });
 			}
 		}
-
 	}
 
-	// Sign-up request model to hold user data from frontend
 	public class SignUpRequest
 	{
 		public string Email { get; set; }
