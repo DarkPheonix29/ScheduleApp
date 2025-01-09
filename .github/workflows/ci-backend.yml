@@ -5,7 +5,12 @@ on:
     branches: [ "master", "developer" ]
   pull_request:
     branches: [ "master", "developer" ]
-
+    
+permissions:
+  contents: write
+  actions: write
+  security-events: write
+  
 jobs:
   backend:
     runs-on: ubuntu-latest
