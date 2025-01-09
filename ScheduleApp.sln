@@ -3,9 +3,15 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 17
 VisualStudioVersion = 17.11.35327.3
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ScheduleApp.Server", "ScheduleApp.Server\ScheduleApp.Server.csproj", "{F56CADE9-D3D0-4ADA-9327-BC8BF6C0BAB2}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ScheduleApp.Server", "ScheduleApp.Server\ScheduleApp.Server.csproj", "{F56CADE9-D3D0-4ADA-9327-BC8BF6C0BAB2}"
 EndProject
-Project("{54A90642-561A-4BB1-A94E-469ADEE60C69}") = "scheduleapp.client", "scheduleapp.client\scheduleapp.client.esproj", "{319B85F2-7183-4869-85ED-7CB60BA39F05}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "DAL", "DAL\DAL.csproj", "{24D29FFC-48B1-4D35-B439-35ABAD5574A4}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "BLL", "BLL\BLL.csproj", "{59AAE901-62B6-4B91-877D-956C9420FC71}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Tests", "Tests\Tests.csproj", "{03D45AD0-9BE2-4BD3-BFFA-51DA3FCB426F}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{A22B5DCC-401C-422A-A7D3-0BD781DE5DED}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -17,12 +23,18 @@ Global
 		{F56CADE9-D3D0-4ADA-9327-BC8BF6C0BAB2}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{F56CADE9-D3D0-4ADA-9327-BC8BF6C0BAB2}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{F56CADE9-D3D0-4ADA-9327-BC8BF6C0BAB2}.Release|Any CPU.Build.0 = Release|Any CPU
-		{319B85F2-7183-4869-85ED-7CB60BA39F05}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{319B85F2-7183-4869-85ED-7CB60BA39F05}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{319B85F2-7183-4869-85ED-7CB60BA39F05}.Debug|Any CPU.Deploy.0 = Debug|Any CPU
-		{319B85F2-7183-4869-85ED-7CB60BA39F05}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{319B85F2-7183-4869-85ED-7CB60BA39F05}.Release|Any CPU.Build.0 = Release|Any CPU
-		{319B85F2-7183-4869-85ED-7CB60BA39F05}.Release|Any CPU.Deploy.0 = Release|Any CPU
+		{24D29FFC-48B1-4D35-B439-35ABAD5574A4}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{24D29FFC-48B1-4D35-B439-35ABAD5574A4}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{24D29FFC-48B1-4D35-B439-35ABAD5574A4}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{24D29FFC-48B1-4D35-B439-35ABAD5574A4}.Release|Any CPU.Build.0 = Release|Any CPU
+		{59AAE901-62B6-4B91-877D-956C9420FC71}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{59AAE901-62B6-4B91-877D-956C9420FC71}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{59AAE901-62B6-4B91-877D-956C9420FC71}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{59AAE901-62B6-4B91-877D-956C9420FC71}.Release|Any CPU.Build.0 = Release|Any CPU
+		{03D45AD0-9BE2-4BD3-BFFA-51DA3FCB426F}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{03D45AD0-9BE2-4BD3-BFFA-51DA3FCB426F}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{03D45AD0-9BE2-4BD3-BFFA-51DA3FCB426F}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{03D45AD0-9BE2-4BD3-BFFA-51DA3FCB426F}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
