@@ -45,5 +45,7 @@ jobs:
 
         
     - name: Send Coverage to Codacy
-        run: |
-          bash <(curl -Ls https://coverage.codacy.com/get.sh) report \--project-token=${{ secrets.CODACY_PROJECT_TOKEN }} \--coverage-reports="${GITHUB_WORKSPACE}/lcov.info"
+      run: |
+        bash <(curl -Ls https://coverage.codacy.com/get.sh) report \
+        --project-token=${{ secrets.CODACY_PROJECT_TOKEN }} \
+        --coverage-reports="${GITHUB_WORKSPACE}/lcov.info"
