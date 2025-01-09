@@ -1,11 +1,5 @@
-using BLL.Manager;
 using BLL.Interfaces;
-using BLL.Models;
-using FirebaseAdmin.Auth;
 using Moq;
-using System.Collections.Generic;
-using System.Threading.Tasks;
-using Xunit;
 
 namespace Tests.Unit
 {
@@ -97,6 +91,8 @@ namespace Tests.Unit
 
 			// Assert
 			_mockUserService.Verify(x => x.AssignRoleAsync(userId, role), Times.Once);
+
+			Assert.True(true);
 		}
 
 		[Fact]
@@ -131,5 +127,22 @@ namespace Tests.Unit
 			_mockUserService.Verify(x => x.LogInAsync(email, password), Times.Once);
 			Assert.Equal(token, result);
 		}
+
+		//alternate paths
+		[Fact]
+		public async Task VerifyTokenAsync_InvalidToken_ReturnsFalse()
+		{
+			// Arrange
+			string idToken = "invalid-token";
+			_mockTokenService.Setup(x => x.VerifyTokenAsync(idToken)).ReturnsAsync(false);
+
+			// Act
+			var result = await _userManager.VerifyTokenAsync(idToken);
+
+			// Assert
+			Assert.False(result);
+			_mockTokenService.Verify(x => x.VerifyTokenAsync(idToken), Times.Once);
+		}
+
 	}
 }
