@@ -101,6 +101,10 @@ StyleCopReport.xml
 # Chutzpah Test files
 _Chutzpah*
 
+# Secrets
+ScheduleApp.Server/scheduleapp-819ca-firebase-adminsdk-hj5ct-56084d1fd0.json
+
+
 # Visual C++ cache files
 ipch/
 *.aps

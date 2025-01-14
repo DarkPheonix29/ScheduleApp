@@ -20,6 +20,16 @@ namespace DAL.repos
 
 		public async Task<UserProfile> CreateUserProfileAsync(string email, string displayName, string phoneNumber, string address, string pickupAddress, DateTime dateOfBirth)
 		{
+			if (string.IsNullOrWhiteSpace(email) ||
+				string.IsNullOrWhiteSpace(displayName) ||
+				string.IsNullOrWhiteSpace(phoneNumber) ||
+				string.IsNullOrWhiteSpace(address) ||
+				string.IsNullOrWhiteSpace(pickupAddress) ||
+				dateOfBirth == DateTime.MinValue)
+			{
+				throw new ArgumentException("All fields are required and must not be empty.");
+			}
+
 			var userProfile = new UserProfile
 			{
 				Email = email,
@@ -36,6 +46,7 @@ namespace DAL.repos
 
 			return userProfile;
 		}
+
 		public async Task<List<EmailData>> GetStudentEmailsAsync()
 		{
 			var emails = new List<EmailData>();
