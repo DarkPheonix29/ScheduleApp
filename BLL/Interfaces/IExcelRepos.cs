@@ -6,9 +6,9 @@ namespace BLL.Interfaces
 {
 	public interface IExcelRepos
 	{
-		Task SaveInstructorCardAsync(string email, byte[] fileBytes);
-		Task<byte[]> GetInstructorCardAsync(string email);
-		Task SaveInstructorCardDuringSignupAsync(string email);
+		Task UpdateLessonStatusAsync(int profileId, string lessonColumn, string status, string category);
+		Task<List<ExcelData>> GetExcelDataAsync(int profileId);
+		Task InitializeExcelDataForProfileAsync(int profileId, List<(string Category, string Topic, string Subtopic)> data);
 	}
 
 }

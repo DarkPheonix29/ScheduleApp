@@ -3,21 +3,14 @@ using System.ComponentModel.DataAnnotations;
 
 public class StudentLesson
 {
-	[Key]
-	[DatabaseGenerated(DatabaseGeneratedOption.Identity)]
-	public int Id { get; set; }
-
-	[Required]
-	public string InstructorEmail { get; set; }
-
-	[Required]
-	public string StudentEmail { get; set; }
-
-	[Required]
+	public int LessonId { get; set; } // Primary Key
+	public string InstructorEmail { get; set; } // Foreign Key (linked to UserProfiles.Email)
+	public string StudentEmail { get; set; } // Foreign Key (linked to UserProfiles.Email)
 	public DateTime Start { get; set; }
-
-	[Required]
 	public DateTime End { get; set; }
-
 	public string Status { get; set; } // "Booked", "Cancelled"
+
+	// Navigation Properties
+	public UserProfile UserProfile { get; set; }
 }
+

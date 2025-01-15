@@ -2,6 +2,7 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -9,9 +10,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace DAL.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20250114230555_UpdateDatabaseModels")]
+    partial class UpdateDatabaseModels
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder.HasAnnotation("ProductVersion", "9.0.0");
@@ -27,153 +30,203 @@ namespace DAL.Migrations
                         .HasColumnType("TEXT");
 
                     b.Property<string>("Les1")
+                        .IsRequired()
                         .HasColumnType("TEXT");
 
                     b.Property<string>("Les10")
+                        .IsRequired()
                         .HasColumnType("TEXT");
 
                     b.Property<string>("Les11")
+                        .IsRequired()
                         .HasColumnType("TEXT");
 
                     b.Property<string>("Les12")
+                        .IsRequired()
                         .HasColumnType("TEXT");
 
                     b.Property<string>("Les13")
+                        .IsRequired()
                         .HasColumnType("TEXT");
 
                     b.Property<string>("Les14")
+                        .IsRequired()
                         .HasColumnType("TEXT");
 
                     b.Property<string>("Les15")
+                        .IsRequired()
                         .HasColumnType("TEXT");
 
                     b.Property<string>("Les16")
+                        .IsRequired()
                         .HasColumnType("TEXT");
 
                     b.Property<string>("Les17")
+                        .IsRequired()
                         .HasColumnType("TEXT");
 
                     b.Property<string>("Les18")
+                        .IsRequired()
                         .HasColumnType("TEXT");
 
                     b.Property<string>("Les19")
+                        .IsRequired()
                         .HasColumnType("TEXT");
 
                     b.Property<string>("Les2")
+                        .IsRequired()
                         .HasColumnType("TEXT");
 
                     b.Property<string>("Les20")
+                        .IsRequired()
                         .HasColumnType("TEXT");
 
                     b.Property<string>("Les21")
+                        .IsRequired()
                         .HasColumnType("TEXT");
 
                     b.Property<string>("Les22")
+                        .IsRequired()
                         .HasColumnType("TEXT");
 
                     b.Property<string>("Les23")
+                        .IsRequired()
                         .HasColumnType("TEXT");
 
                     b.Property<string>("Les24")
+                        .IsRequired()
                         .HasColumnType("TEXT");
 
                     b.Property<string>("Les25")
+                        .IsRequired()
                         .HasColumnType("TEXT");
 
                     b.Property<string>("Les26")
+                        .IsRequired()
                         .HasColumnType("TEXT");
 
                     b.Property<string>("Les27")
+                        .IsRequired()
                         .HasColumnType("TEXT");
 
                     b.Property<string>("Les28")
+                        .IsRequired()
                         .HasColumnType("TEXT");
 
                     b.Property<string>("Les29")
+                        .IsRequired()
                         .HasColumnType("TEXT");
 
                     b.Property<string>("Les3")
+                        .IsRequired()
                         .HasColumnType("TEXT");
 
                     b.Property<string>("Les30")
+                        .IsRequired()
                         .HasColumnType("TEXT");
 
                     b.Property<string>("Les31")
+                        .IsRequired()
                         .HasColumnType("TEXT");
 
                     b.Property<string>("Les32")
+                        .IsRequired()
                         .HasColumnType("TEXT");
 
                     b.Property<string>("Les33")
+                        .IsRequired()
                         .HasColumnType("TEXT");
 
                     b.Property<string>("Les34")
+                        .IsRequired()
                         .HasColumnType("TEXT");
 
                     b.Property<string>("Les35")
+                        .IsRequired()
                         .HasColumnType("TEXT");
 
                     b.Property<string>("Les36")
+                        .IsRequired()
                         .HasColumnType("TEXT");
 
                     b.Property<string>("Les37")
+                        .IsRequired()
                         .HasColumnType("TEXT");
 
                     b.Property<string>("Les38")
+                        .IsRequired()
                         .HasColumnType("TEXT");
 
                     b.Property<string>("Les39")
+                        .IsRequired()
                         .HasColumnType("TEXT");
 
                     b.Property<string>("Les4")
+                        .IsRequired()
                         .HasColumnType("TEXT");
 
                     b.Property<string>("Les40")
+                        .IsRequired()
                         .HasColumnType("TEXT");
 
                     b.Property<string>("Les41")
+                        .IsRequired()
                         .HasColumnType("TEXT");
 
                     b.Property<string>("Les42")
+                        .IsRequired()
                         .HasColumnType("TEXT");
 
                     b.Property<string>("Les43")
+                        .IsRequired()
                         .HasColumnType("TEXT");
 
                     b.Property<string>("Les44")
+                        .IsRequired()
                         .HasColumnType("TEXT");
 
                     b.Property<string>("Les45")
+                        .IsRequired()
                         .HasColumnType("TEXT");
 
                     b.Property<string>("Les46")
+                        .IsRequired()
                         .HasColumnType("TEXT");
 
                     b.Property<string>("Les47")
+                        .IsRequired()
                         .HasColumnType("TEXT");
 
                     b.Property<string>("Les48")
+                        .IsRequired()
                         .HasColumnType("TEXT");
 
                     b.Property<string>("Les49")
+                        .IsRequired()
                         .HasColumnType("TEXT");
 
                     b.Property<string>("Les5")
+                        .IsRequired()
                         .HasColumnType("TEXT");
 
                     b.Property<string>("Les50")
+                        .IsRequired()
                         .HasColumnType("TEXT");
 
                     b.Property<string>("Les6")
+                        .IsRequired()
                         .HasColumnType("TEXT");
 
                     b.Property<string>("Les7")
+                        .IsRequired()
                         .HasColumnType("TEXT");
 
                     b.Property<string>("Les8")
+                        .IsRequired()
                         .HasColumnType("TEXT");
 
                     b.Property<string>("Les9")
+                        .IsRequired()
                         .HasColumnType("TEXT");
 
                     b.Property<int>("ProfileId")

@@ -79,44 +79,82 @@ namespace ScheduleApp.API.Controllers
 		{
 			try
 			{
+				// Validate and use the registration key
 				if (!await _userManager.UseRegistrationKeyAsync(request.RegistrationKey))
 				{
 					return BadRequest(new { message = "Invalid or already used registration key." });
 				}
 
+				// Create the user account
 				var user = await _userManager.SignUpAsync(request.Email, request.Password, "student");
 
+				// Set up the user profile
 				var userProfile = await _profileRepos.CreateUserProfileAsync(
-					request.Email, request.Name, request.PhoneNumber, request.Address, request.PickupAddress, request.DateOfBirth
+					request.Email,
+					request.Name,
+					request.PhoneNumber,
+					request.Address,
+					request.PickupAddress,
+					request.DateOfBirth
 				);
 
-				var templatePath = _configuration["ExcelTemplate:ExcelTemplatePath"];
-				if (!System.IO.File.Exists(templatePath))
+				// Predefined data for Excel initialization
+				var categories = new List<string>
+		{
+			"", "Toets verantwoorde verkeerdeelname", "38", "37", "36", "35", "34", "33", "32", "31",
+			"Toets Complexe Verkeerssituaties", "30", "29", "28", "27", "26", "25", "24",
+			"Toets Eenvoudige Verkeerssituatie / bijzonder verrichtingen", "23", "22", "21", "20", "19", "18", "17", "16", "15", "14", "13", "12", "11", "10", "9",
+			"Toets Voertuigbediening en -Beheersing", "8", "7", "6", "5", "4", "3", "2", "1"
+		};
+
+				var topics = new List<string>
+		{
+			"", "", "Zelfstandig", "Milieu", "Besluitvaardig", "Sociaal", "Noodstop", "Weer", "Nacht", "Speciaal", "",
+			"Kijktechniek", "Weggedeelten", "Erf", "Rotonde", "Autosnelweg", "Inhalen", "Rijstroken", "",
+			"BV", "BV", "BV", "BV", "BV", "BV", "BV", "Afslaan", "Kruispunten", "Tegemoetkomen", "Ruimtekussen", "Rijstroken", "Positie", "Wegrijden", "Kijken", "",
+			"Remmen", "Schakelen", "Gas", "Sturen", "Kijken", "Starten", "Houding", "Controle"
+		};
+
+				var subtopics = new List<string>
+		{
+			"", "", "rijden met navigatiesysteem - ritvoorbereiding - routeplanning",
+			"milieubewust rijgedrag (HNR)", "aangepast en besluitvaardig rijden", "sociaal en defensief rijden",
+			"rem/stuurtechnieken - remmen/uitwijken - noodstop - bermrijden",
+			"rijden bij zijwind - mist - regen - sneeuw - ijzel", "rijden bij nacht - schemer",
+			"rijden bij speciale situaties (brug - viaduct - tunnel)", "",
+			"herhaling kijktechniek", "vop's - overwegen - tram/bushalten", "erf en 30 km-zones",
+			"naderen, oprijden en verlaten (1/4 - 1/2 - 3/4 - 4/4)", "invoegen/uitvoegen - rijden op auto(snel)wegen",
+			"inhalen - voorbijgaan", "rijstrook wisselen - zijdelingse verplaatsing", "",
+			"hellingproef", "vakparkeren (voorwaarts/achterwaarts - haaks/shuin)", "fileparkeren (voorwaarts/achterwaarts)",
+			"omkeren door te steken", "halve draai", "bocht achteruitrijden", "recht achteruitrijden",
+			"afslaan naar links en rechts", "naderen en oversteken van diverse kruispunten",
+			"tegemoetkomen - ingehaald worden", "volgafstand en zijdelingse afstand houden",
+			"gebruik van rijstroken - voorsorteerstroken", "positie - volgen van bochten (links en rechts)",
+			"wegrijden - verlaten van uitrit - inrijden van uitrit", "kijktechniek - gebruik van spiegels", "",
+			"vertragen - remmen - stoppen", "ontkoppelen - schakelen - koppelen", "doseren gaspedaal - gasgeven",
+			"stuurbehandeling - stuurtechnieken", "kijktechniek - scan - gebruik spiegels",
+			"in/uitstappen - motor starten/afzetten", "zit/stuurhouding - autogordel - hoofdsteun - afstellen spiegels",
+			"voorbereidings/controlehandelingen (buiten en binnen de auto)"
+		};
+
+				// Prepare the list of data tuples
+				var data = new List<(string Category, string Topic, string Subtopic)>();
+
+				for (int i = 0; i < categories.Count; i++)
 				{
-					throw new FileNotFoundException($"Template file not found at: {templatePath}");
+					var category = categories.ElementAtOrDefault(i) ?? "";
+					var topic = topics.ElementAtOrDefault(i) ?? "";
+					var subtopic = subtopics.ElementAtOrDefault(i) ?? "";
+
+					// Add the tuple to the list without calling InitializeExcelDataForProfileAsync here
+					data.Add((category, topic, subtopic));
 				}
 
-				var fileBytes = System.IO.File.ReadAllBytes(templatePath);
+				// Call InitializeExcelDataForProfileAsync once, outside the loop
+				await _excelRepos.InitializeExcelDataForProfileAsync(userProfile.ProfileId, data);
 
-				Console.WriteLine($"Read {fileBytes.Length} bytes from template file.");
-
-				// Use the new method for saving the instructor card during signup
-				await _excelRepos.SaveInstructorCardDuringSignupAsync(request.Email);
-
-				// Verify that the file was saved correctly
-				var savedFileBytes = await _excelRepos.GetInstructorCardAsync(request.Email);
-				if (savedFileBytes != null && savedFileBytes.Length > 0)
-				{
-					// Save the instructor card to a file to view it
-					System.IO.File.WriteAllBytes("InstructorCard_" + request.Email + ".pdf", savedFileBytes);
-					Console.WriteLine($"Instructor card saved successfully to a file for user: {request.Email}");
-				}
-				else
-				{
-					throw new Exception("Failed to save the instructor card to the database.");
-				}
-
-				return Ok(new { message = "User registered successfully.", user });
+				// Return success response
+				return Ok(new { message = "User signed up successfully." });
 			}
 			catch (Exception ex)
 			{
@@ -124,8 +162,6 @@ namespace ScheduleApp.API.Controllers
 				return BadRequest(new { message = ex.Message });
 			}
 		}
-
-
 
 		[Authorize]
 		[HttpGet("profile")]

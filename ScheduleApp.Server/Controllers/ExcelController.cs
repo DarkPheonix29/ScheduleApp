@@ -1,5 +1,6 @@
 ﻿using BLL.Interfaces;
 using Microsoft.AspNetCore.Mvc;
+using System.Threading.Tasks;
 
 [Route("api/[controller]")]
 [ApiController]
@@ -12,19 +13,13 @@ public class ExcelController : ControllerBase
 		_excelRepos = excelRepos;
 	}
 
-	[HttpGet("excelget/{email}")]
-	public async Task<IActionResult> GetInstructorCard(string email)
+	[HttpPost("updateLessonStatus")]
+	public async Task<IActionResult> UpdateLessonStatus([FromBody] UpdateLessonStatusRequest request)
 	{
 		try
 		{
-			var fileBytes = await _excelRepos.GetInstructorCardAsync(email);
-
-			if (fileBytes == null || fileBytes.Length == 0)
-			{
-				return NotFound(new { message = "Instructor card not found." });
-			}
-
-			return File(fileBytes, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", "Instructeurkaarttemplate.xlsx");
+			await _excelRepos.UpdateLessonStatusAsync(request.ProfileId, request.LessonColumn, request.Status, request.Category);
+			return Ok(new { message = "Lesson status updated successfully." });
 		}
 		catch (Exception ex)
 		{
@@ -32,19 +27,14 @@ public class ExcelController : ControllerBase
 		}
 	}
 
-	[HttpPost("excelpost/{email}")]
-	public async Task<IActionResult> SaveInstructorCard(string email, [FromBody] InstructorCardFormData formData)
+
+	[HttpGet("getExcelData/{profileId}")]
+	public async Task<IActionResult> GetExcelData(int profileId)
 	{
 		try
 		{
-			if (formData == null || formData.FileBytes == null || formData.FileBytes.Length == 0)
-			{
-				return BadRequest(new { message = "Invalid file data." });
-			}
-
-			await _excelRepos.SaveInstructorCardAsync(email, formData.FileBytes);
-
-			return Ok(new { message = "File saved successfully." });
+			var excelData = await _excelRepos.GetExcelDataAsync(profileId);
+			return Ok(excelData);
 		}
 		catch (Exception ex)
 		{
@@ -52,8 +42,32 @@ public class ExcelController : ControllerBase
 		}
 	}
 
-	public class InstructorCardFormData
+	[HttpPost("initializeExcelData")]
+	public async Task<IActionResult> InitializeExcelData(int profileId, string topic, string subtopic, string category)
 	{
-		public byte[] FileBytes { get; set; }
+		try
+		{
+			var data = new List<(string Category, string Topic, string Subtopic)>
+		{
+			(category, topic, subtopic)
+		};
+
+			await _excelRepos.InitializeExcelDataForProfileAsync(profileId, data);
+			return Ok(new { message = "Excel data initialized successfully." });
+		}
+		catch (Exception ex)
+		{
+			return BadRequest(new { message = ex.Message });
+		}
 	}
+
 }
+
+public class UpdateLessonStatusRequest
+{
+	public int ProfileId { get; set; }
+	public string LessonColumn { get; set; }
+	public string Status { get; set; }
+	public string Category { get; set; }
+}
+
