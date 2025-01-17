@@ -15,9 +15,14 @@ public class InstructorAvailabilityController : ControllerBase
 	[HttpPost("add-availability")]
 	public async Task<IActionResult> AddAvailability([FromBody] AddAvailability availability)
 	{
+		if (string.IsNullOrWhiteSpace(availability.InstructorEmail))
+		{
+			return BadRequest(new { message = "Instructor email is required" });
+		}
+
 		try
 		{
-			InstructorAvailability instructorAvailability = await _availabilityManager.AddAvailabilityAsync(availability.InstructorEmail, availability.End, availability.Start, availability.Status);
+			InstructorAvailability instructorAvailability = await _availabilityManager.AddAvailabilityAsync(availability.InstructorEmail, availability.Start, availability.End, availability.Status);
 			return Ok(new { message = "Availability added successfully." });
 		}
 		catch (Exception ex)
@@ -26,15 +31,12 @@ public class InstructorAvailabilityController : ControllerBase
 		}
 	}
 
-
-
 	[HttpGet("all-availability")]
 	public async Task<IActionResult> GetAllAvailability()
 	{
 		var availabilities = await _availabilityManager.GetInstructorAvailabilityAsync();
 		return Ok(availabilities);
 	}
-
 }
 
 public class AddAvailability
