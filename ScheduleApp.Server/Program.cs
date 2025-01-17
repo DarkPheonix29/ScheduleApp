@@ -47,8 +47,7 @@ builder.Services.AddScoped<IFirebaseUserRepos, FirebaseUserRepos>(); // Ensure t
 builder.Services.AddScoped<IUserManager, UserManager>();
 
 // Add WebSocket services
-builder.Services.AddSingleton<WebSocketConnectionManager>();
-builder.Services.AddSingleton<WebSocketNotificationHandler>();
+
 
 // Add controllers and views
 builder.Services.AddControllersWithViews();

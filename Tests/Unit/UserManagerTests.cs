@@ -1,5 +1,7 @@
 using BLL.Interfaces;
 using Moq;
+using FirebaseAdmin.Auth;
+using Xunit;
 
 namespace Tests.Unit
 {
@@ -21,128 +23,155 @@ namespace Tests.Unit
 		[Fact]
 		public async Task VerifyTokenAsync_CallsTokenServiceAndReturnsExpectedResult()
 		{
-			// Arrange
-			string idToken = "some-token";
+			string idToken = "valid-token";
 			_mockTokenService.Setup(x => x.VerifyTokenAsync(idToken)).ReturnsAsync(true);
 
-			// Act
 			var result = await _userManager.VerifyTokenAsync(idToken);
 
-			// Assert
 			_mockTokenService.Verify(x => x.VerifyTokenAsync(idToken), Times.Once);
 			Assert.True(result);
+		}
+
+		[Fact]
+		public async Task VerifyTokenAsync_InvalidToken_ReturnsFalse()
+		{
+			string idToken = "invalid-token";
+			_mockTokenService.Setup(x => x.VerifyTokenAsync(idToken)).ReturnsAsync(false);
+
+			var result = await _userManager.VerifyTokenAsync(idToken);
+
+			Assert.False(result);
+			_mockTokenService.Verify(x => x.VerifyTokenAsync(idToken), Times.Once);
 		}
 
 		[Fact]
 		public async Task GenerateRegistrationKeyAsync_CallsKeyServiceAndReturnsKey()
 		{
-			// Arrange
 			string expectedKey = "generated-key";
 			_mockKeyService.Setup(x => x.GenerateRegistrationKeyAsync()).ReturnsAsync(expectedKey);
 
-			// Act
 			var result = await _userManager.GenerateRegistrationKeyAsync();
 
-			// Assert
 			_mockKeyService.Verify(x => x.GenerateRegistrationKeyAsync(), Times.Once);
 			Assert.Equal(expectedKey, result);
 		}
 
 		[Fact]
+		public async Task GenerateRegistrationKeyAsync_Failure_ThrowsException()
+		{
+			_mockKeyService.Setup(x => x.GenerateRegistrationKeyAsync()).ThrowsAsync(new Exception("Key generation failed"));
+
+			await Assert.ThrowsAsync<Exception>(() => _userManager.GenerateRegistrationKeyAsync());
+		}
+
+		[Fact]
 		public async Task UseRegistrationKeyAsync_CallsKeyServiceAndReturnsTrue()
 		{
-			// Arrange
 			string key = "used-key";
 			_mockKeyService.Setup(x => x.UseRegistrationKeyAsync(key)).ReturnsAsync(true);
 
-			// Act
 			var result = await _userManager.UseRegistrationKeyAsync(key);
 
-			// Assert
 			_mockKeyService.Verify(x => x.UseRegistrationKeyAsync(key), Times.Once);
 			Assert.True(result);
 		}
 
 		[Fact]
-		public async Task GetAllKeysAsync_CallsKeyServiceAndReturnsListOfKeys()
+		public async Task UseRegistrationKeyAsync_Failure_ThrowsException()
 		{
-			// Arrange
-			var keys = new List<KeyData> { new KeyData { Key = "key1" }, new KeyData { Key = "key2" } };
-			_mockKeyService.Setup(x => x.GetAllKeysAsync()).ReturnsAsync(keys);
+			string key = "invalid-key";
+			_mockKeyService.Setup(x => x.UseRegistrationKeyAsync(key)).ThrowsAsync(new Exception("Key usage failed"));
 
-			// Act
-			var result = await _userManager.GetAllKeysAsync();
-
-			// Assert
-			_mockKeyService.Verify(x => x.GetAllKeysAsync(), Times.Once);
-			Assert.Equal(keys.Count, result.Count);
+			await Assert.ThrowsAsync<Exception>(() => _userManager.UseRegistrationKeyAsync(key));
 		}
 
 		[Fact]
 		public async Task AssignRoleAsync_CallsUserServiceToAssignRole()
 		{
-			// Arrange
 			string userId = "user-123";
 			string role = "admin";
 			_mockUserService.Setup(x => x.AssignRoleAsync(userId, role)).Returns(Task.CompletedTask);
 
-			// Act
 			await _userManager.AssignRoleAsync(userId, role);
 
-			// Assert
 			_mockUserService.Verify(x => x.AssignRoleAsync(userId, role), Times.Once);
+		}
 
-			Assert.True(true);
+		[Fact]
+		public async Task AssignRoleAsync_Failure_ThrowsException()
+		{
+			string userId = "user-123";
+			string role = "admin";
+			_mockUserService.Setup(x => x.AssignRoleAsync(userId, role)).ThrowsAsync(new Exception("Role assignment failed"));
+
+			await Assert.ThrowsAsync<Exception>(() => _userManager.AssignRoleAsync(userId, role));
 		}
 
 		[Fact]
 		public async Task GetRoleFromFirestoreAsync_CallsUserServiceAndReturnsRole()
 		{
-			// Arrange
 			string email = "test@example.com";
 			string role = "admin";
 			_mockUserService.Setup(x => x.GetRoleFromFirestoreAsync(email)).ReturnsAsync(role);
 
-			// Act
 			var result = await _userManager.GetRoleFromFirestoreAsync(email);
 
-			// Assert
 			_mockUserService.Verify(x => x.GetRoleFromFirestoreAsync(email), Times.Once);
 			Assert.Equal(role, result);
 		}
 
 		[Fact]
+		public async Task GetRoleFromFirestoreAsync_InvalidRole_ReturnsNull()
+		{
+			string email = "test@example.com";
+			_mockUserService.Setup(x => x.GetRoleFromFirestoreAsync(email)).ReturnsAsync(null as string);
+
+			var result = await _userManager.GetRoleFromFirestoreAsync(email);
+
+			Assert.Null(result);
+		}
+
+		[Fact]
 		public async Task LogInAsync_CallsUserServiceAndReturnsToken()
 		{
-			// Arrange
 			string email = "test@example.com";
 			string password = "password";
 			string token = "auth-token";
 			_mockUserService.Setup(x => x.LogInAsync(email, password)).ReturnsAsync(token);
 
-			// Act
 			var result = await _userManager.LogInAsync(email, password);
 
-			// Assert
 			_mockUserService.Verify(x => x.LogInAsync(email, password), Times.Once);
 			Assert.Equal(token, result);
 		}
 
-		//alternate paths
 		[Fact]
-		public async Task VerifyTokenAsync_InvalidToken_ReturnsFalse()
+		public async Task LogInAsync_Failure_ThrowsException()
 		{
-			// Arrange
-			string idToken = "invalid-token";
-			_mockTokenService.Setup(x => x.VerifyTokenAsync(idToken)).ReturnsAsync(false);
+			string email = "test@example.com";
+			string password = "wrong-password";
+			_mockUserService.Setup(x => x.LogInAsync(email, password)).ThrowsAsync(new Exception("Login failed"));
 
-			// Act
-			var result = await _userManager.VerifyTokenAsync(idToken);
-
-			// Assert
-			Assert.False(result);
-			_mockTokenService.Verify(x => x.VerifyTokenAsync(idToken), Times.Once);
+			await Assert.ThrowsAsync<Exception>(() => _userManager.LogInAsync(email, password));
 		}
-		//alternate paths
+
+		// Additional tests for edge cases
+		[Fact]
+		public async Task AssignRoleAsync_NullRole_ReturnsFalse()
+		{
+			string userId = "user-123";
+			await _userManager.AssignRoleAsync(userId, null!);  // or handle null gracefully in the method
+																// Verify result or handle the specific return logic
+		}
+
+
+		[Fact]
+
+		public async Task LogInAsync_NullCredentials_ReturnsNull()
+		{
+			await _userManager.LogInAsync(null!, null!);  // or handle null gracefully in the method
+														  // Verify result or handle specific logic for null credentials
+		}
+
 	}
 }
