@@ -10,14 +10,14 @@
 services:
   server:
     build:
-      context: .
+      context: .  # Context is the root directory (ScheduleApp)
       target: final
     ports:
       - "8080:8080"  # Maps port 8080 on the host to port 8080 in the container
     environment:
-      - FIREBASE_KEY_PATH=/app/serviceAccountKey.json
+      - GOOGLE_APPLICATION_CREDENTIALS=/app/serviceAccountKey.json
     volumes:
-      - ../scheduleapp-819ca-firebase-adminsdk-hj5ct-ed6b7912e0.json:/app/serviceAccountKey.json
+      - ./ScheduleApp.Server/scheduleapp-819ca-firebase-adminsdk-hj5ct-56084d1fd0.json:/app/serviceAccountKey.json:ro  # Mount the Firebase key
 
 
 # The commented out section below is an example of how to define a PostgreSQL

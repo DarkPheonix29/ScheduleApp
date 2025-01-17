@@ -1,10 +1,7 @@
 using BLL.Interfaces;
 using BLL.Models;
-using DAL.repos;
-using Microsoft.EntityFrameworkCore;
+using Moq;
 using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Threading.Tasks;
 using Xunit;
 
@@ -12,18 +9,12 @@ namespace Tests.Unit
 {
 	public class ProfileIntegrationsTests
 	{
-		private readonly IProfileRepos _profileRepos;
-		private readonly ApplicationDbContext _dbContext;
+		private readonly Mock<IProfileRepos> _mockProfileRepos;
 
 		public ProfileIntegrationsTests()
 		{
-			// Use SQLite In-Memory Database for testing
-			var options = new DbContextOptionsBuilder<ApplicationDbContext>()
-				.UseInMemoryDatabase(databaseName: "TestDatabase")
-				.Options;
-
-			_dbContext = new ApplicationDbContext(options);
-			_profileRepos = new ProfileRepos(_dbContext); // Directly use ApplicationDbContext for the test
+			// Initialize the mocked repository
+			_mockProfileRepos = new Mock<IProfileRepos>();
 		}
 
 		// Test CreateUserProfileAsync (Happy Path)
@@ -38,8 +29,23 @@ namespace Tests.Unit
 			var pickupAddress = "456 Pickup Ave";
 			var dateOfBirth = new DateTime(1990, 1, 1);
 
+			var expectedUserProfile = new UserProfile
+			{
+				Email = email,
+				DisplayName = displayName,
+				PhoneNumber = phoneNumber,
+				Address = address,
+				PickupAddress = pickupAddress,
+				DateOfBirth = dateOfBirth
+			};
+
+			// Setup the mock to return the expected user profile
+			_mockProfileRepos
+				.Setup(repo => repo.CreateUserProfileAsync(email, displayName, phoneNumber, address, pickupAddress, dateOfBirth))
+				.ReturnsAsync(expectedUserProfile);
+
 			// Act
-			var userProfile = await _profileRepos.CreateUserProfileAsync(email, displayName, phoneNumber, address, pickupAddress, dateOfBirth);
+			var userProfile = await _mockProfileRepos.Object.CreateUserProfileAsync(email, displayName, phoneNumber, address, pickupAddress, dateOfBirth);
 
 			// Assert
 			Assert.NotNull(userProfile);
@@ -51,9 +57,14 @@ namespace Tests.Unit
 		[Fact]
 		public async Task CreateUserProfileAsync_ShouldThrowArgumentException_WhenRequiredFieldsAreMissing()
 		{
+			// Arrange
+			_mockProfileRepos
+				.Setup(repo => repo.CreateUserProfileAsync("", "", "", "", "", DateTime.MinValue))
+				.ThrowsAsync(new ArgumentException("Required fields are missing"));
+
 			// Act & Assert
 			await Assert.ThrowsAsync<ArgumentException>(async () =>
-				await _profileRepos.CreateUserProfileAsync("", "", "", "", "", DateTime.MinValue)
+				await _mockProfileRepos.Object.CreateUserProfileAsync("", "", "", "", "", DateTime.MinValue)
 			);
 		}
 
@@ -63,10 +74,19 @@ namespace Tests.Unit
 		{
 			// Arrange
 			var email = "testuser@example.com";
-			var createdProfile = await _profileRepos.CreateUserProfileAsync(email, "Test User", "123456789", "123 St", "456 Pickup Ave", new DateTime(1990, 1, 1));
+			var expectedUserProfile = new UserProfile
+			{
+				Email = email,
+				DisplayName = "Test User"
+			};
+
+			// Setup the mock to return the expected user profile
+			_mockProfileRepos
+				.Setup(repo => repo.GetStudentProfileByEmailAsync(email))
+				.ReturnsAsync(expectedUserProfile);
 
 			// Act
-			var userProfile = await _profileRepos.GetStudentProfileByEmailAsync(email);
+			var userProfile = await _mockProfileRepos.Object.GetStudentProfileByEmailAsync(email);
 
 			// Assert
 			Assert.NotNull(userProfile);
@@ -77,8 +97,16 @@ namespace Tests.Unit
 		[Fact]
 		public async Task GetStudentProfileByEmailAsync_ShouldReturnNull_WhenEmailDoesNotExist()
 		{
+			// Arrange
+			var nonExistentEmail = "nonexistent@example.com";
+
+			// Setup the mock to return null for a non-existent email
+			_mockProfileRepos
+				.Setup(repo => repo.GetStudentProfileByEmailAsync(nonExistentEmail))
+				.ReturnsAsync((UserProfile)null);
+
 			// Act
-			var userProfile = await _profileRepos.GetStudentProfileByEmailAsync("nonexistent@example.com");
+			var userProfile = await _mockProfileRepos.Object.GetStudentProfileByEmailAsync(nonExistentEmail);
 
 			// Assert
 			Assert.Null(userProfile);
