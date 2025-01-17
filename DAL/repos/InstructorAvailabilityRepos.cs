@@ -29,7 +29,7 @@ public class InstructorAvailabilityRepos : IInstructorAvailabilityRepos
 			End = start,
 			Status = status
 		};
-		_context.InstructorAvailabilities.Add(availability);
+		await _context.InstructorAvailabilities.AddAsync(availability);
 		await _context.SaveChangesAsync();
 		return availability;
 	}

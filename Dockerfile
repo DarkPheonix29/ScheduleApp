@@ -16,7 +16,7 @@ FROM --platform=$BUILDPLATFORM mcr.microsoft.com/dotnet/sdk:8.0-alpine AS build
 
 COPY . /source
 
-COPY /ScheduleApp.server/scheduleapp-819ca-firebase-adminsdk-hj5ct-56084d1fd0.json /app/scheduleapp-819ca-firebase-adminsdk-hj5ct-56084d1fd0.json
+COPY /ScheduleApp.Server/scheduleapp-819ca-firebase-adminsdk-hj5ct-56084d1fd0.json /app/scheduleapp-819ca-firebase-adminsdk-hj5ct-56084d1fd0.json
 
 
 # Set the GOOGLE_APPLICATION_CREDENTIALS environment variable

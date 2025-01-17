@@ -15,5 +15,6 @@ namespace BLL.Manager
 		Task LogoutUserAsync(string uid);
 		Task<UserRecord> SignUpAsync(string email, string password, string role);
 		Task<string> LogInAsync(string email, string password);
+		Task SendAdminMessage(string message);
 	}
 }

@@ -54,6 +54,13 @@ public class AdminController : ControllerBase
 		}
 		return Ok(keys);
 	}
+
+	[HttpPost("sendmessage")]
+	public async Task<ActionResult> SendMessage([FromBody] string message)
+	{
+		await _userManager.SendAdminMessage(message);
+		return Ok();
+	}
 }
 
 public class AssignRoleRequest

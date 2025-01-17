@@ -163,20 +163,6 @@ namespace ScheduleApp.API.Controllers
 			}
 		}
 
-		[Authorize]
-		[HttpGet("profile")]
-		public IActionResult Profile()
-		{
-			var userId = User.Claims.FirstOrDefault(c => c.Type == ClaimTypes.NameIdentifier)?.Value;
-
-			return Ok(new
-			{
-				Name = User.Identity?.Name,
-				Email = User.Claims.FirstOrDefault(c => c.Type == ClaimTypes.Email)?.Value,
-				Role = User.Claims.FirstOrDefault(c => c.Type == ClaimTypes.Role)?.Value,
-				UserId = userId
-			});
-		}
 
 		[Authorize]
 		[HttpPost("logout")]

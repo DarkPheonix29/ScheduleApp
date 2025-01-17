@@ -2,12 +2,20 @@
 using BLL.Manager;
 using BLL.Models;
 using FirebaseAdmin.Auth;
+using Grpc.Core;
 
 public class UserManager : IUserManager
 {
 	private readonly IFirebaseTokenManager _tokenService;
 	private readonly IFirebaseKeyManager _keyService;
 	private readonly IFirebaseUserRepos _userService;
+
+	public static event EventHandler<AdminMessageEventArgs>? OnAdminMessage;
+
+	public class AdminMessageEventArgs(string message) : EventArgs
+	{
+		public string Message { get; set; } = message;
+	}
 
 	public UserManager(IFirebaseTokenManager tokenService, IFirebaseKeyManager keyService, IFirebaseUserRepos userService)
 	{
@@ -21,6 +29,22 @@ public class UserManager : IUserManager
 	{
 		return await _tokenService.VerifyTokenAsync(idToken);
 	}
+
+	public Task SendAdminMessage(string message)
+	{
+		Console.WriteLine($"Sending message: {message}");
+		if (OnAdminMessage != null)
+		{
+			Console.WriteLine($"Number of subscribers: {OnAdminMessage.GetInvocationList().Length}");
+			OnAdminMessage.Invoke(this, new AdminMessageEventArgs(message));
+		}
+		else
+		{
+			Console.WriteLine("No subscribers for OnAdminMessage.");
+		}
+		return Task.CompletedTask;
+	}
+
 
 	// Generating a registration key
 	public async Task<string> GenerateRegistrationKeyAsync()

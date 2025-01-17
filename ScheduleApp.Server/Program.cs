@@ -9,6 +9,7 @@ using BLL.Manager;
 using Google.Cloud.Firestore;
 using FirebaseAdmin.Auth;
 using Microsoft.OpenApi.Models;
+using Microsoft.AspNetCore.Http;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -45,6 +46,10 @@ builder.Services.AddScoped<IExcelRepos, ExcelRepos>();
 builder.Services.AddScoped<IFirebaseUserRepos, FirebaseUserRepos>(); // Ensure this matches your actual implementation
 builder.Services.AddScoped<IUserManager, UserManager>();
 
+// Add WebSocket services
+builder.Services.AddSingleton<WebSocketConnectionManager>();
+builder.Services.AddSingleton<WebSocketNotificationHandler>();
+
 // Add controllers and views
 builder.Services.AddControllersWithViews();
 
@@ -65,11 +70,10 @@ builder.Services.AddEndpointsApiExplorer();
 // Add Swagger/OpenAPI for development with file upload support
 builder.Services.AddSwaggerGen(c =>
 {
-    // Explicitly specify that IFormFile is of type binary
-    c.MapType<IFormFile>(() => new OpenApiSchema { Type = "string", Format = "binary" });
+	// Explicitly specify that IFormFile is of type binary
+	c.MapType<IFormFile>(() => new OpenApiSchema { Type = "string", Format = "binary" });
 
-
-    // Optional: If you want to support additional file types or configure further, you can add more here.
+	// Optional: If you want to support additional file types or configure further, you can add more here.
 });
 
 
@@ -93,6 +97,12 @@ if (app.Environment.IsDevelopment())
 	app.UseSwagger();
 	app.UseSwaggerUI();
 }
+
+// Enable WebSockets
+app.UseWebSockets();
+
+// Add WebSocket middleware
+//app.UseMiddleware<Middleware.WebSocketMiddleware>();
 
 app.UseHttpsRedirection();
 app.UseAuthentication(); // Enable Authentication Middleware
